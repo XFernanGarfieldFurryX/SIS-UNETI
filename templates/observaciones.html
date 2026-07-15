@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}
+Observaciones | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+```
+<div class="card-header">
+    <h2>💬 Gestión de Observaciones</h2>
+</div>
+<div class="card-body">
+    <p>
+
+        Registro y administración de observaciones asociadas a los usuarios del
+         sistema SIS-UNETI.
+    </p>
+    <div class="encabezado-solicitudes">
+        <h2>
+            📋 Lista de Observaciones
+        </h2>
+        <a href="{{ url_for('nueva_observacion') }}" class="btn-nueva">
+
+            ➕ Nueva Observación
+
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+
+                    <th>Usuario</th>
+
+                    <th>Tipo</th>
+
+                    <th>Descripción</th>
+
+                    <th>Fecha</th>
+
+                    {% if session["rol"] in ["administrador","docente"] %}
+
+                    <th>Acciones</th>
+
+                    {% endif %}
+
+                </tr>
+            </thead>
+            <tbody>
+
+                {% if observaciones %}
+
+                    {% for obs in observaciones %}
+
+                    <tr>
+                        <td>
+
+                            {{ obs.id_observacion }}
+
+                        </td>
+                        <td>
+
+                            {{ obs.usuario }}
+
+                        </td>
+                        <td>
+
+                            {{ obs.tipo }}
+
+                        </td>
+                        <td class="descripcion-tabla">
+
+                            {{ obs.descripcion }}
+
+                        </td>
+                        <td>
+
+                            {{ obs.fecha }}
+
+                        </td>
+
+                        {% if session["rol"] in ["administrador","docente"] %}
+
+                        <td>
+                            <div class="acciones-solicitud">
+                                <a href="{{ url_for('editar_observacion', id=obs.id_observacion) }}" 
+                                   class="btn-editar">
+
+                                    ✏️ Editar
+
+                                </a>
+                                <a href="{{ url_for('eliminar_observacion', id=obs.id_observacion) }}" 
+                                   class="btn-eliminar"
+                                   onclick="return confirm('¿Estás seguro de eliminar esta observación?');">
+
+                                    🗑️ Eliminar
+
+                                </a>
+                            </div>
+                        </td>
+
+                        {% endif %}
+
+                    </tr>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    <tr>
+                        <td colspan="6" class="text-center">
+
+                            No existen observaciones registradas.
+
+                        </td>
+                    </tr>
+
+                {% endif %}
+
+            </tbody>
+        </table>
+    </div>
+</div>
+```
+</div>
+
+{% endblock %}

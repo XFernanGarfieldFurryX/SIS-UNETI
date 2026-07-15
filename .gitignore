@@ -1,0 +1,29 @@
+# Entorno virtual
+venv/
+.venv/
+
+# Variables de entorno
+.env
+
+# Caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos temporales
+*.log
+*.tmp
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Base de datos SQLite (si algún día la usas)
+*.db
+
+# Carpeta de VS Code (opcional)
+.vscode/
+
+# Archivos de subida temporales
+uploads/

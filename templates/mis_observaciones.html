@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+Mis Observaciones | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+
+        <h2>
+
+            📝 Mis Observaciones
+
+        </h2>
+    </div>
+    <div class="card-body">
+        <p>
+
+            Consulta de observaciones asociadas a tu usuario dentro del sistema SIS-UNETI.
+
+        </p>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+
+                        <th>Tipo</th>
+
+                        <th>Descripción</th>
+
+                        <th>Fecha</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% if observaciones %}
+
+                        {% for obs in observaciones %}
+
+                        <tr>
+                            <td>
+
+                                {{ obs.id_observacion }}
+
+                            </td>
+                            <td>
+
+                                {{ obs.tipo }}
+
+                            </td>
+                            <td class="descripcion-tabla">
+
+                                {{ obs.descripcion }}
+
+                            </td>
+                            <td>
+
+                                {{ obs.fecha }}
+
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="4" class="text-center">
+
+                                No tienes observaciones registradas.
+
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+        <br>
+        <div class="acciones-formulario">
+            <a href="{{ url_for('nueva_observacion') }}" class="btn-nueva">
+
+                ➕ Nueva Observación
+
+            </a>
+            <a href="{{ url_for('estudiante') }}" class="btn-cancelar">
+
+                ↩️ Volver al Panel
+
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

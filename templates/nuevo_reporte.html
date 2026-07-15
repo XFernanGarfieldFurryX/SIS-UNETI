@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+Nuevo Reporte | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <h2>📊 Nuevo Reporte</h2>
+    
+    {% if error %}
+        <div class="alerta-error">{{ error }}</div>
+    {% endif %}
+    
+    <form method="POST">
+        <label for="titulo">Título</label>
+        <input type="text" id="titulo" name="titulo" placeholder="Ej: Reporte de notas" required>
+
+        <label for="descripcion">Descripción</label>
+        <textarea id="descripcion" name="descripcion" rows="5" placeholder="Describe el reporte..." required></textarea>
+
+        <label for="tipo">Tipo de Reporte</label>
+        <select id="tipo" name="tipo" required>
+            <option value="">Seleccione...</option>
+            <option value="Académico">Académico</option>
+            <option value="Disciplinario">Disciplinario</option>
+            <option value="Administrativo">Administrativo</option>
+            <option value="Otro">Otro</option>
+        </select>
+
+        <label for="fecha_generacion">Fecha de Generación</label>
+        <input type="date" id="fecha_generacion" name="fecha_generacion" required>
+
+        <br><br>
+        <button type="submit" class="btn">💾 Guardar Reporte</button>
+        <a href="{{ url_for('reportes') }}" class="btn btn-danger">❌ Cancelar</a>
+    </form>
+</div>
+
+{% endblock %}

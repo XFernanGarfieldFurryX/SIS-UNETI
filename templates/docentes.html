@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}
+Docentes
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<h1>👨‍🏫 Gestión de Docentes</h1>
+
+<p>
+    Administración de información del personal docente registrado en SIS-UNETI.
+</p>
+
+
+<div class="table-responsive">
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Cédula</th>
+
+                <th>Nombres</th>
+
+                <th>Apellidos</th>
+
+                <th>Especialidad</th>
+
+                <th>Correo</th>
+
+                <th>Teléfono</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+            {% for docente in docentes %}
+
+            <tr>
+
+                <td>
+                    {{ docente.id_docente }}
+                </td>
+
+
+                <td>
+                    {{ docente.cedula }}
+                </td>
+
+
+                <td>
+                    {{ docente.nombres }}
+                </td>
+
+
+                <td>
+                    {{ docente.apellidos }}
+                </td>
+
+
+                <td>
+                    {{ docente.especialidad }}
+                </td>
+
+
+                <td>
+                    {{ docente.correo }}
+                </td>
+
+
+                <td>
+                    {{ docente.telefono }}
+                </td>
+
+
+            </tr>
+
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="7" class="text-center">
+
+                    No existen docentes registrados.
+
+                </td>
+
+            </tr>
+
+
+            {% endfor %}
+
+
+        </tbody>
+
+
+    </table>
+
+
+</div>
+```
+
+</div>
+
+{% endblock %}

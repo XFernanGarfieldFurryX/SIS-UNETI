@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar Solicitud | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>✏️ Editar Solicitud</h1>
+
+    <p>
+        Modifique la información de la solicitud seleccionada.
+    </p>
+
+    <form method="POST">
+
+        <label>
+
+        Tipo de Solicitud
+
+        </label>
+
+    <select name="tipo_solicitud" required>
+
+<option
+{% if solicitud.tipo_solicitud=="Beca Académica" %}
+selected
+{% endif %}
+>
+Beca Académica
+
+    </option>
+
+    <option
+    {% if solicitud.tipo_solicitud=="Ayuda Económica" %}
+    selected
+    {% endif %}
+>
+        Ayuda Económica
+
+    </option>
+
+    <option
+    {% if solicitud.tipo_solicitud=="Transporte" %}
+    selected
+    {% endif %}
+> 
+        Transporte
+
+        </option>
+
+    <option
+    {% if solicitud.tipo_solicitud=="Alimentación" %}
+    selected
+    {% endif %}
+>
+        Alimentación
+
+    </option>
+
+    </select>
+
+    <label>
+
+        Descripción
+
+    </label>
+
+        <textarea
+        name="descripcion"
+        rows="6"
+        required>{{ solicitud.descripcion }}</textarea>
+
+    <label>
+
+        Estado
+
+    </label>
+
+    <select name="estado">
+
+        <option
+        {% if solicitud.estado=="Pendiente" %}
+        selected
+        {% endif %}
+>
+        Pendiente
+
+        </option>
+ 
+        <option
+        {% if solicitud.estado=="En Revisión" %}
+        selected
+        {% endif %}
+>
+        En Revisión
+
+        </option>
+
+        <option
+        {% if solicitud.estado=="Aprobada" %}
+        selected
+        {% endif %}
+>
+        Aprobada
+
+        </option>
+
+        <option
+        {% if solicitud.estado=="Rechazada" %}
+        selected
+        {% endif %}
+>
+        Rechazada
+
+        </option>
+
+    </select>
+
+        <br><br>
+
+    <button class="btn">
+
+        💾 Guardar Cambios
+
+    </button>
+
+        <a href="/solicitudes" class="btn">
+
+        Cancelar
+
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

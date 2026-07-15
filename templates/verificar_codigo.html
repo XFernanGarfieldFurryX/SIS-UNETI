@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+Verificar Código | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="login-container">
+    <div class="login-card">
+
+        <div class="login-logo">
+            <h2 style="color: #003366;">🔑 Verificar Código de Recuperación</h2>
+        </div>
+
+        {% if error %}
+        <div class="alerta-error">{{ error }}</div>
+        {% endif %}
+
+        <p>Ingresa el código de 6 dígitos que recibiste en tu correo electrónico.</p>
+
+        <form method="POST" action="{{ url_for('verificar_codigo') }}">
+            <div class="input-group">
+                <label for="usuario">👤 Usuario</label>
+                <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" required value="{{ usuario if usuario else '' }}">
+            </div>
+
+            <div class="input-group">
+                <label for="codigo">🔢 Código de 6 dígitos</label>
+                <input type="text" id="codigo" name="codigo" placeholder="Ej: 482391" maxlength="6" required pattern="[0-9]{6}" title="Debe ser un número de 6 dígitos">
+            </div>
+
+            <button type="submit" class="btn login-btn">✅ Verificar código</button>
+        </form>
+
+        <p style="text-align:center; margin-top:20px;">
+            <a href="{{ url_for('recuperar') }}" style="color:#003366;">← Solicitar nuevo código</a>
+        </p>
+
+        <p style="text-align:center; margin-top:10px;">
+            <a href="{{ url_for('login') }}" style="color:#003366;">← Volver al inicio de sesión</a>
+        </p>
+    </div>
+</div>
+
+{% endblock %}

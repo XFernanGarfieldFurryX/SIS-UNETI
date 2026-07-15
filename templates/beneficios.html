@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}
+Beneficios | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <div class="card-header">
+        <h2>🎁 Gestión de Beneficios</h2>
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            Consulta y administración de beneficios socioeconómicos registrados en el sistema SIS-UNETI.
+        </p>
+
+
+        <div class="encabezado-solicitudes">
+
+            <h2>📋 Lista de Beneficios</h2>
+
+
+            {% if session["rol"] in ["administrador", "docente"] %}
+
+            <a href="{{ url_for('nuevo_beneficio') }}" class="btn-nueva">
+                ➕ Nuevo Beneficio
+            </a>
+
+            {% endif %}
+
+
+        </div>
+
+
+
+        <div class="table-responsive">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Estudiante</th>
+                        <th>Beneficio</th>
+                        <th>Descripción</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+
+
+                        {% if session["rol"] in ["administrador", "docente"] %}
+                        <th>Acciones</th>
+                        {% endif %}
+
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                {% if beneficios %}
+
+
+                    {% for beneficio in beneficios %}
+
+
+                    <tr>
+
+
+                        <td>
+                            {{ beneficio.id_beneficio }}
+                        </td>
+
+
+                        <td>
+                            {{ beneficio.nombres }}
+                            {{ beneficio.apellidos }}
+                        </td>
+
+
+                        <td>
+                            {{ beneficio.nombre_beneficio }}
+                        </td>
+
+
+                        <td class="descripcion-tabla">
+
+                            {{ beneficio.descripcion }}
+
+                        </td>
+
+
+                        <td>
+                            {{ beneficio.fecha_solicitud }}
+                        </td>
+
+
+
+                        <td>
+
+                            {% if beneficio.estado == "Pendiente" %}
+
+                                <span class="estado pendiente">
+                                    {{ beneficio.estado }}
+                                </span>
+
+
+                            {% elif beneficio.estado == "Aprobado" %}
+
+                                <span class="estado activo">
+                                    {{ beneficio.estado }}
+                                </span>
+
+
+                            {% elif beneficio.estado == "Rechazado" %}
+
+                                <span class="estado rechazado">
+                                    {{ beneficio.estado }}
+                                </span>
+
+
+                            {% else %}
+
+                                <span class="estado">
+                                    {{ beneficio.estado }}
+                                </span>
+
+
+                            {% endif %}
+
+
+                        </td>
+
+
+
+                        {% if session["rol"] in ["administrador", "docente"] %}
+
+                        <td>
+
+
+                            <div class="acciones-solicitud">
+
+
+                                <a href="{{ url_for('editar_beneficio', id=beneficio.id_beneficio) }}" 
+                                class="btn-editar">
+
+                                    ✏️ Editar
+
+                                </a>
+
+
+
+                                <a href="{{ url_for('eliminar_beneficio', id=beneficio.id_beneficio) }}" 
+                                class="btn-eliminar"
+                                onclick="return confirm('¿Estás seguro de eliminar este beneficio?');">
+
+                                    🗑️ Eliminar
+
+                                </a>
+
+
+                            </div>
+
+
+                        </td>
+
+
+                        {% endif %}
+
+
+
+                    </tr>
+
+
+                    {% endfor %}
+
+
+
+                {% else %}
+
+
+
+                    <tr>
+
+                        <td colspan="7" class="text-center">
+
+                            No existen beneficios registrados.
+
+                        </td>
+
+                    </tr>
+
+
+
+                {% endif %}
+
+
+                </tbody>
+
+
+            </table>
+
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+{% endblock %}

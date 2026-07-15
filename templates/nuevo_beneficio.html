@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Nuevo Beneficio</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h2>
+Registrar Nuevo Beneficio
+</h2>
+
+
+<form method="POST">
+
+
+<label>
+Estudiante:
+</label>
+
+
+<select name="id_estudiante" required>
+
+<option value="">
+Seleccione estudiante
+</option>
+
+
+{% for estudiante in estudiantes %}
+
+
+<option value="{{ estudiante.id_estudiante }}">
+
+{{ estudiante.nombres }} {{ estudiante.apellidos }}
+
+</option>
+
+
+{% endfor %}
+
+
+</select>
+
+
+
+<br><br>
+
+
+
+<label>
+Nombre del Beneficio:
+</label>
+
+
+<input
+
+type="text"
+
+name="nombre_beneficio"
+
+required>
+
+
+
+<br><br>
+
+
+
+<label>
+Descripción:
+</label>
+
+
+<textarea
+
+name="descripcion"
+
+required></textarea>
+
+
+
+<br><br>
+
+
+
+<label>
+Fecha de Solicitud:
+</label>
+
+
+<input
+
+type="date"
+
+name="fecha_solicitud"
+
+required>
+
+
+
+<br><br>
+
+
+
+<label>
+Estado:
+</label>
+
+
+<select name="estado">
+
+
+<option value="Pendiente">
+Pendiente
+</option>
+
+
+<option value="Aprobado">
+Aprobado
+</option>
+
+
+<option value="Rechazado">
+Rechazado
+</option>
+
+
+</select>
+
+
+
+<br><br>
+
+
+
+<button type="submit">
+
+💾 Guardar Beneficio
+
+</button>
+
+
+
+<a href="/beneficios">
+
+Cancelar
+
+</a>
+
+
+</form>
+
+
+</div>
+
+
+</body>
+
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIS-UNETI{% endblock %}</title>
+
+    <!-- ========================= -->
+    <!-- FUENTE MODERNA (Inter)    -->
+    <!-- ========================= -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+
+    <!-- ========================= -->
+    <!-- CSS PRINCIPAL             -->
+    <!-- ========================= -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- CSS EXTRA POR PÁGINA -->
+    {% block styles %}{% endblock %}
+
+    <!-- ICONO -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.png') }}" type="image/png">
+</head>
+<body>
+
+    <!-- ===================================================== -->
+    <!-- BARRA SUPERIOR FIJA (NAVBAR)                         -->
+    <!-- ===================================================== -->
+    <header class="navbar-fixed">
+        <div class="navbar-inner">
+            <!-- Logo -->
+            <div class="navbar-logo">
+                <a href="{{ url_for('inicio') }}">
+                    <span class="logo-icon">🎓</span>
+                    <span class="logo-text">SIS-UNETI</span>
+                </a>
+            </div>
+
+            <!-- Buscador (opcional, solo decorativo) -->
+            <div class="navbar-search">
+                <input type="text" placeholder="Buscar...">
+            </div>
+
+            <!-- Perfil / Usuario -->
+            <div class="navbar-profile">
+                {% if session.get("usuario") %}
+                    <div class="profile-dropdown">
+                        <span class="profile-avatar">👤</span>
+                        <span class="profile-name">{{ session["usuario"] }}</span>
+                        <span class="profile-role">({{ session["rol"] }})</span>
+                        <a href="{{ url_for('logout') }}" class="logout-link">🚪</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('login') }}" class="btn-login-header">🔐 Iniciar Sesión</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================== -->
+    <!-- LAYOUT PRINCIPAL (SIDEBAR + CONTENIDO)              -->
+    <!-- ===================================================== -->
+    <div class="app-layout">
+
+        <!-- ============================================ -->
+        <!-- SIDEBAR IZQUIERDO (MENÚ PRINCIPAL)          -->
+        <!-- ============================================ -->
+        <aside class="sidebar-left">
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('inicio') }}" class="sidebar-link {% if request.endpoint == 'inicio' %}active{% endif %}">
+                    <span class="sidebar-icon">🏠</span>
+                    <span class="sidebar-label">Inicio</span>
+                </a>
+
+                {% if not session.get("usuario") %}
+                <a href="{{ url_for('login') }}" class="sidebar-link {% if request.endpoint == 'login' %}active{% endif %}">
+                    <span class="sidebar-icon">🔐</span>
+                    <span class="sidebar-label">Login</span>
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('solicitudes') }}" class="sidebar-link {% if request.endpoint == 'solicitudes' %}active{% endif %}">
+                    <span class="sidebar-icon">📄</span>
+                    <span class="sidebar-label">Solicitudes</span>
+                </a>
+
+                <a href="{{ url_for('beneficios') }}" class="sidebar-link {% if request.endpoint == 'beneficios' %}active{% endif %}">
+                    <span class="sidebar-icon">🎁</span>
+                    <span class="sidebar-label">Beneficios</span>
+                </a>
+
+                <a href="{{ url_for('reportes') }}" class="sidebar-link {% if request.endpoint == 'reportes' %}active{% endif %}">
+                    <span class="sidebar-icon">📊</span>
+                    <span class="sidebar-label">Reportes</span>
+                </a>
+
+                <a href="{{ url_for('evaluaciones') }}" class="sidebar-link {% if request.endpoint == 'evaluaciones' %}active{% endif %}">
+                    <span class="sidebar-icon">📝</span>
+                    <span class="sidebar-label">Evaluaciones</span>
+                </a>
+
+                <a href="{{ url_for('observaciones') }}" class="sidebar-link {% if request.endpoint == 'observaciones' %}active{% endif %}">
+                    <span class="sidebar-icon">💬</span>
+                    <span class="sidebar-label">Observaciones</span>
+                </a>
+
+                {% if session.get("rol") == "administrador" %}
+                <a href="{{ url_for('administrador') }}" class="sidebar-link {% if request.endpoint == 'administrador' %}active{% endif %}">
+                    <span class="sidebar-icon">⚙️</span>
+                    <span class="sidebar-label">Dashboard</span>
+                </a>
+                <a href="{{ url_for('estudiantes') }}" class="sidebar-link">
+                    <span class="sidebar-icon">👨‍🎓</span>
+                    <span class="sidebar-label">Estudiantes</span>
+                </a>
+                <a href="{{ url_for('docentes') }}" class="sidebar-link">
+                    <span class="sidebar-icon">👨‍🏫</span>
+                    <span class="sidebar-label">Docentes</span>
+                </a>
+                <a href="{{ url_for('auditoria') }}" class="sidebar-link {% if request.endpoint == 'auditoria' %}active{% endif %}">
+                    <span class="sidebar-icon">🛡️</span>
+                    <span class="sidebar-label">Auditoría</span>
+                </a>
+                {% endif %}
+
+                {% if session.get("rol") == "docente" %}
+                <a href="{{ url_for('docente') }}" class="sidebar-link {% if request.endpoint == 'docente' %}active{% endif %}">
+                    <span class="sidebar-icon">👨‍🏫</span>
+                    <span class="sidebar-label">Panel Docente</span>
+                </a>
+                {% endif %}
+
+                {% if session.get("rol") == "estudiante" %}
+                <a href="{{ url_for('estudiante') }}" class="sidebar-link {% if request.endpoint == 'estudiante' %}active{% endif %}">
+                    <span class="sidebar-icon">👨‍🎓</span>
+                    <span class="sidebar-label">Panel Estudiante</span>
+                </a>
+                <a href="{{ url_for('mis_solicitudes') }}" class="sidebar-link">
+                    <span class="sidebar-icon">📋</span>
+                    <span class="sidebar-label">Mis Solicitudes</span>
+                </a>
+                {% endif %}
+
+                {% if session.get("usuario") %}
+                <a href="{{ url_for('logout') }}" class="sidebar-link logout-link">
+                    <span class="sidebar-icon">🚪</span>
+                    <span class="sidebar-label">Cerrar Sesión</span>
+                </a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- ============================================ -->
+        <!-- CONTENIDO PRINCIPAL                          -->
+        <!-- ============================================ -->
+        <main class="main-content">
+            <!-- Mensajes Flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Contenido dinámico -->
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- ============================================ -->
+        <!-- SIDEBAR DERECHO (WIDGETS CON ENLACES)       -->
+        <!-- ============================================ -->
+        <aside class="sidebar-right">
+            <div class="widget-card">
+                <h4>📢 Avisos</h4>
+                <p>📌 Mantén tus datos actualizados.</p>
+                <p>📌 Revisa tus solicitudes periódicamente.</p>
+                <p>📌 Consulta los beneficios disponibles.</p>
+            </div>
+            <div class="widget-card">
+                <h4>🌐 Enlaces</h4>
+                <a href="https://www.uneti.edu.ve/campus/" target="_blank">🏛️ UNETI Web</a>
+                <a href="https://www.uneti.edu.ve/campus/my/courses.php" target="_blank">📚 Materias UC</a>
+                <a href="https://www.uneti.edu.ve/campus/calendar/view.php?view=month" target="_blank">📅 Calendario UNETI</a>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- FOOTER                                               -->
+    <!-- ===================================================== -->
+    <footer class="footer-modern">
+        <div class="footer-inner">
+            <p><strong>🎓 SIS-UNETI</strong> — Sistema Integrado de Servicios Socioeconómicos</p>
+            <p>Proyecto Sociotecnológico II · UNETI · Caracas - Venezuela</p>
+            <p>Versión 1.0 · © 2026 Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- ===================================================== -->
+    <!-- JAVASCRIPT                                           -->
+    <!-- ===================================================== -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

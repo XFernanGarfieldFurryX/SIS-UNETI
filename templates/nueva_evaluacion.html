@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}
+Nueva Evaluación | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>
+
+            📚 Registrar Nueva Evaluación
+
+        </h2>
+    </div>
+    <div class="card-body">
+        <p>
+
+            Registra el rendimiento académico de un estudiante dentro del sistema SIS-UNETI.
+
+        </p>
+        <form method="POST">
+            <label>
+
+                👨‍🎓 Estudiante
+
+            </label>
+            <select name="id_estudiante" required>
+                <option value="">
+
+                    Seleccione un estudiante
+
+                </option>
+
+                {% for estudiante in estudiantes %}
+
+                <option value="{{ estudiante.id_estudiante }}">
+
+                    {{ estudiante.nombres }}
+
+                    {{ estudiante.apellidos }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+            <label>
+
+                📘 Asignatura
+
+            </label>
+            <input 
+                type="text"
+                name="asignatura"
+                placeholder="Ejemplo: Ingeniería de Software"
+                required
+            >
+            <label>
+
+                📝 Nota
+
+            </label>
+            <input 
+                type="number"
+                name="nota"
+                step="0.01"
+                min="0"
+                max="20"
+                placeholder="Ejemplo: 18.50"
+                required
+            >
+            <label>
+
+                📅 Periodo Académico
+
+            </label>
+            <input 
+                type="text"
+                name="periodo"
+                placeholder="Ejemplo: 2026-I"
+                required
+            >
+            <label>
+
+                💬 Observación
+
+            </label>
+            <textarea 
+                name="observacion"
+                rows="4"
+                placeholder="Escriba una observación sobre el desempeño del estudiante..."
+                required
+            ></textarea>
+            <div class="acciones-formulario">
+                <button 
+                    type="submit"
+                    class="btn-nueva"
+                >
+
+                    💾 Guardar Evaluación
+
+                </button>
+                <a href="{{ url_for('evaluaciones') }}" class="btn-cancelar">
+
+                    ↩️ Cancelar
+
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %} 

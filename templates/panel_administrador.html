@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}
+Panel Administrador | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<!-- ===================================================== -->
+<!-- TOPBAR PREMIUM                                        -->
+<!-- ===================================================== -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h2>👋 Bienvenido, <strong>{{ session["usuario"] }}</strong></h2>
+        <p>Panel Administrativo del Sistema Integrado de Servicios Socioeconómicos (SIS-UNETI)</p>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-user">👨‍💼 Administrador</div>
+        <div class="topbar-clock">
+            <div id="fecha" class="fecha"></div>
+            <div id="hora" class="hora"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- TÍTULO                                                -->
+<!-- ===================================================== -->
+<h1>⚙️ Panel de Administración</h1>
+<p>Bienvenido <strong>{{ session["usuario"] }}</strong>. Desde este panel podrá administrar el sistema SIS-UNETI.</p>
+
+<!-- ===================================================== -->
+<!-- TARJETAS ESTADÍSTICAS CON BOTONES                     -->
+<!-- ===================================================== -->
+<div class="dashboard">
+    <div class="dashboard-card">
+        <div class="dashboard-icon">👨‍🎓</div>
+        <div class="dashboard-title">Estudiantes</div>
+        <div class="dashboard-value">{{ estudiantes }}</div>
+        <a href="{{ url_for('estudiantes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px;">
+            👥 Gestionar
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">👨‍🏫</div>
+        <div class="dashboard-title">Docentes</div>
+        <div class="dashboard-value">{{ docentes }}</div>
+        <a href="{{ url_for('docentes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px;">
+            👥 Gestionar
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">👨‍💼</div>
+        <div class="dashboard-title">Administradores</div>
+        <div class="dashboard-value">{{ administradores }}</div>
+        <a href="{{ url_for('usuarios') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px;">
+            👥 Gestionar
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📄</div>
+        <div class="dashboard-title">Solicitudes</div>
+        <div class="dashboard-value">{{ solicitudes }}</div>
+        <a href="{{ url_for('solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px;">
+            📋 Ver Todas
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">⏳</div>
+        <div class="dashboard-title">Pendientes</div>
+        <div class="dashboard-value">{{ pendientes }}</div>
+        <a href="{{ url_for('solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px; background: #FFC107; color: black;">
+            ⏳ Revisar
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">✅</div>
+        <div class="dashboard-title">Aprobadas</div>
+        <div class="dashboard-value">{{ aprobadas }}</div>
+        <a href="{{ url_for('solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px; background: #198754;">
+            ✅ Ver Aprobadas
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">❌</div>
+        <div class="dashboard-title">Rechazadas</div>
+        <div class="dashboard-value">{{ rechazadas }}</div>
+        <a href="{{ url_for('solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; font-size: 13px; background: #DC3545;">
+            ❌ Ver Rechazadas
+        </a>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- GRÁFICO                                               -->
+<!-- ===================================================== -->
+<div class="card">
+    <h2>📊 Estadísticas del Sistema</h2>
+    <div style="height:350px;">
+        <canvas id="graficoSolicitudes"></canvas>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- ACTIVIDAD RECIENTE (TABLA MEJORADA)                   -->
+<!-- ===================================================== -->
+<div class="card">
+    <div class="encabezado-solicitudes">
+        <h2>📋 Actividad Reciente</h2>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>📅 Fecha y Hora</th>
+                    <th>👤 Usuario</th>
+                    <th>⚡ Acción</th>
+                    <th>📦 Módulo</th>
+                    <th>🌐 Dirección IP</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if actividad %}
+                    {% for item in actividad %}
+                    <tr>
+                        <td><strong>{{ item.fecha_formateada }}</strong></td>
+                        <td><span class="usuario-tag">{{ item.usuario }}</span></td>
+                        <td>
+                            {% if "Inicio" in item.accion %}
+                                <span class="estado activo" style="font-size:11px;">🔐 {{ item.accion }}</span>
+                            {% elif "Cerró" in item.accion or "cierre" in item.accion.lower() %}
+                                <span class="estado rechazado" style="font-size:11px;">🚪 {{ item.accion }}</span>
+                            {% elif "Creó" in item.accion or "Registró" in item.accion %}
+                                <span class="estado pendiente" style="font-size:11px; color:black;">📝 {{ item.accion }}</span>
+                            {% elif "Editó" in item.accion or "Actualizó" in item.accion %}
+                                <span class="estado" style="background:#1976D2; font-size:11px;">✏️ {{ item.accion }}</span>
+                            {% elif "Eliminó" in item.accion %}
+                                <span class="estado rechazado" style="font-size:11px;">🗑️ {{ item.accion }}</span>
+                            {% elif "Correo" in item.accion %}
+                                <span class="estado" style="background:#6C757D; font-size:11px;">📧 {{ item.accion }}</span>
+                            {% elif "Limpieza" in item.accion %}
+                                <span class="estado" style="background:#DC3545; font-size:11px;">🧹 {{ item.accion }}</span>
+                            {% else %}
+                                <span class="estado" style="background:#6C757D; font-size:11px;">⚙️ {{ item.accion }}</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="modulo-tag">{{ item.modulo }}</span></td>
+                        <td><code style="background:#f4f4f4; padding:4px 8px; border-radius:4px; font-size:12px;">{{ item.ip }}</code></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">No hay actividad reciente registrada.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- NOTIFICACIONES (SIEMPRE VISIBLE)                      -->
+<!-- ===================================================== -->
+<div class="card">
+    <h2>🔔 Centro de Notificaciones</h2>
+    {% if notificaciones %}
+        {% for alerta in notificaciones %}
+            <div class="alerta alerta-{{ alerta.tipo }}">{{ alerta.mensaje }}</div>
+        {% endfor %}
+    {% else %}
+        <div class="alerta alerta-info">ℹ️ No hay notificaciones nuevas.</div>
+    {% endif %}
+</div>
+
+<!-- ===================================================== -->
+<!-- ACCESOS RÁPIDOS                                       -->
+<!-- ===================================================== -->
+<div class="card">
+    <h2>⚙️ Accesos Rápidos</h2>
+    <a href="{{ url_for('estudiantes') }}" class="btn">👨‍🎓 Estudiantes</a>
+    <a href="{{ url_for('docentes') }}" class="btn">👨‍🏫 Docentes</a>
+    <a href="{{ url_for('solicitudes') }}" class="btn">📄 Solicitudes</a>
+    <a href="{{ url_for('beneficios') }}" class="btn">🎁 Beneficios</a>
+    <a href="{{ url_for('reportes') }}" class="btn">📊 Reportes</a>
+    <a href="{{ url_for('evaluaciones') }}" class="btn">📝 Evaluaciones</a>
+    <a href="{{ url_for('observaciones') }}" class="btn">💬 Observaciones</a>
+    <a href="{{ url_for('auditoria') }}" class="btn" style="background:#6C757D;">🛡️ Auditoría</a>
+</div>
+
+<!-- ===================================================== -->
+<!-- HERRAMIENTAS DE ADMINISTRACIÓN                        -->
+<!-- ===================================================== -->
+<div class="card" style="border-left: 5px solid #DC3545;">
+    <h2>🧹 Herramientas de Administración</h2>
+    <p style="color: #DC3545; font-weight: bold;">
+        ⚠️ Esta acción eliminará <strong>todos los registros</strong> de auditoría del sistema.
+        No se podrá recuperar la información eliminada.
+    </p>
+    <form method="POST" action="{{ url_for('ejecutar_limpieza') }}" 
+          onsubmit="return confirm('¿Estás seguro de eliminar TODO el historial de auditoría? Esta acción no se puede deshacer.');">
+        <input type="hidden" name="opcion" value="completa">
+        <button type="submit" class="btn" style="background: #DC3545; color: white; border: none;">
+            🗑️ Eliminar Historial de Auditoría
+        </button>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- ===================================================== -->
+<!-- DATOS PARA EL GRÁFICO                                -->
+<!-- ===================================================== -->
+<script>
+    const DATOS_GRAFICO = {
+        pendientes: {{ pendientes|default(0)|tojson }},
+        aprobadas: {{ aprobadas|default(0)|tojson }},
+        rechazadas: {{ rechazadas|default(0)|tojson }}
+    };
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById("graficoSolicitudes");
+        if (ctx) {
+            new Chart(ctx, {
+                type: "doughnut",
+                data: {
+                    labels: ["Pendientes", "Aprobadas", "Rechazadas"],
+                    datasets: [{
+                        data: [
+                            DATOS_GRAFICO.pendientes || 0,
+                            DATOS_GRAFICO.aprobadas || 0,
+                            DATOS_GRAFICO.rechazadas || 0
+                        ],
+                        backgroundColor: ["#FFC107", "#198754", "#DC3545"],
+                        borderColor: "#FFFFFF",
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "bottom" }
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+<!-- ===================================================== -->
+<!-- RELOJ EN TIEMPO REAL                                 -->
+<!-- ===================================================== -->
+<script>
+    function actualizarReloj() {
+        const ahora = new Date();
+        const opciones = { timeZone: "America/Caracas", hour: "2-digit", minute: "2-digit", second: "2-digit" };
+        document.getElementById("hora").textContent = ahora.toLocaleTimeString("es-VE", opciones);
+        document.getElementById("fecha").textContent = ahora.toLocaleDateString("es-VE", {
+            timeZone: "America/Caracas",
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+</script>
+{% endblock %}

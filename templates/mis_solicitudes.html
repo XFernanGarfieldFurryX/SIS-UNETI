@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}
+Mis Solicitudes | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<h1>📄 Mis Solicitudes</h1>
+
+<div class="card">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Fecha</th>
+
+<th>Tipo</th>
+
+<th>Descripción</th>
+
+<th>Estado</th>
+
+<th>Acciones</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for solicitud in solicitudes %}
+
+<tr>
+
+<td>
+{{ solicitud.fecha }}
+</td>
+
+<td>
+{{ solicitud.tipo_solicitud }}
+</td>
+
+<td>
+{{ solicitud.descripcion }}
+</td>
+
+<td>
+{{ solicitud.estado }}
+</td>
+
+<td>
+
+<div class="acciones-solicitud">
+
+<a 
+href="{{ url_for('editar_solicitud', id=solicitud.id_solicitud) }}"
+class="btn-editar">
+
+✏️ Editar
+
+</a>
+
+<a 
+href="{{ url_for('eliminar_solicitud', id=solicitud.id_solicitud) }}"
+class="btn-eliminar">
+
+🗑️ Eliminar
+
+</a>
+
+</div>
+
+</td>
+
+</tr>
+
+{% else %}
+
+<tr>
+
+<td colspan="5">
+
+No posee solicitudes registradas.
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+{% endblock %}

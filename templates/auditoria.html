@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}
+Auditoría del Sistema | SIS-UNETI
+{% endblock %}
+
+{% block styles %}
+<style>
+    .filtros-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        align-items: end;
+    }
+    .filtro-item {
+        display: flex;
+        flex-direction: column;
+    }
+    .filtro-item label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: var(--azul-principal);
+    }
+    .filtro-item input,
+    .filtro-item select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--gris-medio);
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    .botones-filtros {
+        flex-direction: row;
+        gap: 10px;
+        align-items: center;
+    }
+    .botones-filtros .btn-nueva,
+    .botones-filtros .btn-cancelar {
+        padding: 10px 20px;
+    }
+    .grafica-container {
+        height: 250px;
+        width: 100%;
+    }
+    .header-acciones {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+        .filtros-grid {
+            grid-template-columns: 1fr;
+        }
+        .botones-filtros {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .header-acciones {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>🛡️ Centro de Auditoría del Sistema</h2>
+    </div>
+
+    <div class="card-body">
+        <p>
+            Monitoreo de las acciones realizadas por los usuarios dentro del Sistema Integrado de Servicios Socioeconómicos de la UNETI.
+        </p>
+
+        <!-- =============================== -->
+        <!-- FILTROS AVANZADOS              -->
+        <!-- =============================== -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🔍 Filtros de búsqueda</h3>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('auditoria') }}">
+                    <div class="filtros-grid">
+                        <div class="filtro-item">
+                            <label for="buscar">👤 Usuario</label>
+                            <input type="text" id="buscar" name="buscar" placeholder="Buscar usuario..." value="{{ buscar }}">
+                        </div>
+                        <div class="filtro-item">
+                            <label for="rol">🔐 Rol</label>
+                            <select id="rol" name="rol">
+                                <option value="">Todos los roles</option>
+                                <option value="administrador" {% if rol=="administrador" %}selected{% endif %}>👑 Administrador</option>
+                                <option value="docente" {% if rol=="docente" %}selected{% endif %}>👨‍🏫 Docente</option>
+                                <option value="estudiante" {% if rol=="estudiante" %}selected{% endif %}>🎓 Estudiante</option>
+                            </select>
+                        </div>
+                        <div class="filtro-item">
+                            <label for="modulo">📦 Módulo</label>
+                            <input type="text" id="modulo" name="modulo" placeholder="Ej: Beneficios" value="{{ modulo }}">
+                        </div>
+                        <div class="filtro-item">
+                            <label for="desde">📅 Desde</label>
+                            <input type="date" id="desde" name="desde" value="{{ fecha_desde }}">
+                        </div>
+                        <div class="filtro-item">
+                            <label for="hasta">📅 Hasta</label>
+                            <input type="date" id="hasta" name="hasta" value="{{ fecha_hasta }}">
+                        </div>
+                        <div class="filtro-item botones-filtros">
+                            <button type="submit" class="btn-nueva">🔎 Buscar</button>
+                            <a href="{{ url_for('auditoria') }}" class="btn-cancelar">🧹 Limpiar</a>
+                            <a href="{{ url_for('exportar_pdf') }}" class="btn-nueva" target="_blank" style="background: linear-gradient(135deg, #DC3545, #B02A37);">📄 Exportar PDF</a>
+                            <a href="{{ url_for('exportar_excel') }}" class="btn-nueva" target="_blank" style="background: linear-gradient(135deg, #28A745, #1E7E34);">📊 Exportar Excel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- =============================== -->
+        <!-- TARJETAS DE ESTADÍSTICAS       -->
+        <!-- =============================== -->
+        <div class="dashboard">
+            <div class="card">
+                <h2>📄 Total de Acciones</h2>
+                <h1>{{ total_acciones }}</h1>
+                <p>Acciones registradas en el sistema.</p>
+            </div>
+            <div class="card">
+                <h2>🔑 Inicios de Sesión</h2>
+                <h1>{{ total_logins }}</h1>
+                <p>Accesos exitosos al sistema.</p>
+            </div>
+            <div class="card">
+                <h2>✏️ Ediciones</h2>
+                <h1>{{ total_ediciones }}</h1>
+                <p>Registros modificados.</p>
+            </div>
+            <div class="card">
+                <h2>🗑️ Eliminaciones</h2>
+                <h1>{{ total_eliminaciones }}</h1>
+                <p>Registros eliminados.</p>
+            </div>
+            <div class="card">
+                <h2>👤 Usuario más activo</h2>
+                {% if usuario_activo %}
+                    <p><strong>{{ usuario_activo.usuario }}</strong></p>
+                    <p>{{ usuario_activo.total }} acciones registradas</p>
+                {% else %}
+                    <p>Sin registros disponibles.</p>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h2>📦 Módulo más utilizado</h2>
+                {% if modulo_principal %}
+                    <p><strong>{{ modulo_principal.modulo }}</strong></p>
+                    <p>{{ modulo_principal.total }} acciones realizadas</p>
+                {% else %}
+                    <p>Sin información.</p>
+                {% endif %}
+            </div>
+            <div class="card">
+                <h2>🔐 Accesos por rol</h2>
+                {% if accesos_roles %}
+                    {% for acceso in accesos_roles %}
+                        <p>
+                            {% if acceso.rol == "administrador" %}👑 Administrador:
+                            {% elif acceso.rol == "docente" %}👨‍🏫 Docente:
+                            {% else %}🎓 Estudiante:{% endif %}
+                            {{ acceso.total }}
+                        </p>
+                    {% endfor %}
+                {% else %}
+                    <p>Sin accesos registrados.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- =============================== -->
+        <!-- GRÁFICAS DE AUDITORÍA           -->
+        <!-- =============================== -->
+        <h2 style="margin-top: 40px; color: var(--azul-principal);">📊 Visualización de Datos</h2>
+        <div class="dashboard">
+            <div class="card">
+                <h2>📅 Actividad diaria</h2>
+                <div class="grafica-container">
+                    <canvas id="graficaActividad"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>📦 Acciones por módulo</h2>
+                <div class="grafica-container">
+                    <canvas id="graficaModulos"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>👥 Usuarios más activos</h2>
+                <div class="grafica-container">
+                    <canvas id="graficaUsuarios"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>⚙️ Tipos de acciones</h2>
+                <div class="grafica-container">
+                    <canvas id="graficaAcciones"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- =============================== -->
+        <!-- TABLA DE AUDITORÍA              -->
+        <!-- =============================== -->
+        <div class="encabezado-solicitudes">
+            <h2>📋 Historial de Auditoría</h2>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Acción</th>
+                        <th>Módulo</th>
+                        <th>Fecha</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if auditorias %}
+                        {% for auditoria in auditorias %}
+                        <tr>
+                            <td>{{ auditoria.id_auditoria }}</td>
+                            <td>{{ auditoria.usuario }}</td>
+                            <td>
+                                {% if auditoria.rol == "administrador" %}
+                                    <span class="estado activo">👑 Administrador</span>
+                                {% elif auditoria.rol == "docente" %}
+                                    <span class="estado pendiente">👨‍🏫 Docente</span>
+                                {% else %}
+                                    <span class="estado rechazado">🎓 Estudiante</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ auditoria.accion }}</td>
+                            <td>{{ auditoria.modulo }}</td>
+                            <td>{{ auditoria.fecha }}</td>
+                            <td>{{ auditoria.ip }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No existen registros de auditoría.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- =============================== -->
+        <!-- PAGINACIÓN                     -->
+        <!-- =============================== -->
+        <div class="paginacion" style="display: flex; justify-content: center; gap: 15px; margin-top: 20px;">
+            {% if pagina > 1 %}
+                <a href="?pagina={{ pagina-1 }}{% if buscar %}&buscar={{ buscar }}{% endif %}{% if rol %}&rol={{ rol }}{% endif %}{% if modulo %}&modulo={{ modulo }}{% endif %}{% if fecha_desde %}&desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&hasta={{ fecha_hasta }}{% endif %}" class="btn">⬅ Anterior</a>
+            {% endif %}
+            <span>Página {{ pagina }} de {{ total_paginas }}</span>
+            {% if pagina < total_paginas %}
+                <a href="?pagina={{ pagina+1 }}{% if buscar %}&buscar={{ buscar }}{% endif %}{% if rol %}&rol={{ rol }}{% endif %}{% if modulo %}&modulo={{ modulo }}{% endif %}{% if fecha_desde %}&desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&hasta={{ fecha_hasta }}{% endif %}" class="btn">Siguiente ➡</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- =============================== -->
+<!-- CHART.JS Y GRÁFICAS             -->
+<!-- =============================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Gráfica 1: Actividad diaria
+    const ctxActividad = document.getElementById("graficaActividad");
+    if (ctxActividad) {
+        const dias = [{% for a in actividad_diaria %}"{{ a.dia }}",{% endfor %}];
+        const totalesDias = [{% for a in actividad_diaria %}{{ a.total }},{% endfor %}];
+        new Chart(ctxActividad, {
+            type: "line",
+            data: {
+                labels: dias,
+                datasets: [{
+                    label: "Acciones",
+                    data: totalesDias,
+                    backgroundColor: "rgba(0, 51, 102, 0.2)",
+                    borderColor: "#003366",
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Gráfica 2: Acciones por módulo
+    const ctxModulos = document.getElementById("graficaModulos");
+    if (ctxModulos) {
+        const modulos = [{% for m in acciones_modulos %}"{{ m.modulo }}",{% endfor %}];
+        const valoresModulos = [{% for m in acciones_modulos %}{{ m.total }},{% endfor %}];
+        new Chart(ctxModulos, {
+            type: "bar",
+            data: {
+                labels: modulos,
+                datasets: [{
+                    label: "Acciones",
+                    data: valoresModulos,
+                    backgroundColor: "#00509E",
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // Gráfica 3: Usuarios más activos
+    const ctxUsuarios = document.getElementById("graficaUsuarios");
+    if (ctxUsuarios) {
+        const usuarios = [{% for u in usuarios_activos %}"{{ u.usuario }}",{% endfor %}];
+        const valoresUsuarios = [{% for u in usuarios_activos %}{{ u.total }},{% endfor %}];
+        new Chart(ctxUsuarios, {
+            type: "pie",
+            data: {
+                labels: usuarios,
+                datasets: [{
+                    data: valoresUsuarios,
+                    backgroundColor: ["#003366", "#00509E", "#0D47A1", "#1976D2", "#42A5F5"]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: "bottom" } }
+            }
+        });
+    }
+
+    // Gráfica 4: Tipos de acciones
+    const ctxAcciones = document.getElementById("graficaAcciones");
+    if (ctxAcciones) {
+        const acciones = [{% for a in acciones_tipo %}"{{ a.accion }}",{% endfor %}];
+        const valoresAcciones = [{% for a in acciones_tipo %}{{ a.total }},{% endfor %}];
+        new Chart(ctxAcciones, {
+            type: "doughnut",
+            data: {
+                labels: acciones,
+                datasets: [{
+                    data: valoresAcciones,
+                    backgroundColor: ["#003366", "#00509E", "#0D47A1", "#1976D2", "#42A5F5"]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: "bottom" } }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

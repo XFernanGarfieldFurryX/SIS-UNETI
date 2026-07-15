@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}
+Inicio | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<!-- ========================================= -->
+<!-- HERO PRINCIPAL -->
+<!-- ========================================= -->
+
+<div class="card hero">
+
+    <div class="hero-content">
+
+        <h1>🎓 Bienvenido al SIS-UNETI</h1>
+
+        <h3>
+            Sistema Integrado de Servicios Socioeconómicos
+        </h3>
+
+        <p>
+
+            Plataforma oficial para la gestión de solicitudes,
+            beneficios socioeconómicos y servicios institucionales
+            de la Universidad Nacional Experimental de las
+            Telecomunicaciones e Informática (UNETI).
+
+        </p>
+
+        <div class="hero-botones">
+
+            <a href="{{ url_for('login') }}" class="btn">
+                🔐 Iniciar Sesión
+            </a>
+
+            <a href="{{ url_for('estudiante') }}" class="btn">
+                👨‍🎓 Estudiante
+            </a>
+
+            <a href="{{ url_for('docente') }}" class="btn">
+                👨‍🏫 Docente
+            </a>
+
+            <a href="{{ url_for('administrador') }}" class="btn">
+                👨‍💼 Administrador
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================= -->
+<!-- SERVICIOS -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h2>🚀 Servicios Disponibles</h2>
+
+    <div class="dashboard">
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-icon">📄</div>
+
+            <div class="dashboard-title">
+                Solicitudes
+            </div>
+
+            <p>
+                Registro y seguimiento de solicitudes
+                socioeconómicas.
+            </p>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-icon">🎁</div>
+
+            <div class="dashboard-title">
+                Beneficios
+            </div>
+
+            <p>
+                Consulta de beneficios otorgados
+                por la universidad.
+            </p>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-icon">📊</div>
+
+            <div class="dashboard-title">
+                Reportes
+            </div>
+
+            <p>
+                Visualización de estadísticas
+                institucionales.
+            </p>
+
+        </div>
+
+        <div class="dashboard-card">
+
+            <div class="dashboard-icon">📝</div>
+
+            <div class="dashboard-title">
+                Evaluaciones
+            </div>
+
+            <p>
+                Seguimiento de evaluaciones y
+                procesos administrativos.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ========================================= -->
+<!-- OBJETIVO -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h2>🎯 Objetivo del Sistema</h2>
+
+    <p>
+
+        El Sistema Integrado de Servicios Socioeconómicos
+        (SIS-UNETI) tiene como finalidad automatizar y optimizar
+        la gestión de los procesos administrativos relacionados
+        con estudiantes, docentes y personal administrativo,
+        ofreciendo una plataforma moderna, segura, eficiente
+        y accesible desde cualquier dispositivo.
+
+    </p>
+
+</div>
+
+<!-- ========================================= -->
+<!-- MÓDULOS -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h2>🏛️ Módulos Principales</h2>
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>Módulo</th>
+
+                <th>Descripción</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            <tr>
+
+                <td>👨‍🎓 Estudiantes</td>
+
+                <td>Gestión de solicitudes y beneficios.</td>
+
+            </tr>
+
+            <tr>
+
+                <td>👨‍🏫 Docentes</td>
+
+                <td>Evaluación y seguimiento académico.</td>
+
+            </tr>
+
+            <tr>
+
+                <td>👨‍💼 Administración</td>
+
+                <td>Control institucional del sistema.</td>
+
+            </tr>
+
+            <tr>
+
+                <td>📊 Reportes</td>
+
+                <td>Indicadores estadísticos del sistema.</td>
+
+            </tr>
+
+            <tr>
+
+                <td>💬 Observaciones</td>
+
+                <td>Registro de comentarios y seguimiento.</td>
+
+            </tr>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- ========================================= -->
+<!-- PIE DE BIENVENIDA -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <center>
+
+        <h2>💙 UNETI</h2>
+
+        <br>
+
+        <p>
+
+            "Tecnología, Innovación y Desarrollo al servicio
+            de la comunidad universitaria."
+
+        </p>
+
+        <br>
+
+        <a href="{{ url_for('login') }}" class="btn">
+
+            Comenzar Ahora →
+
+        </a>
+
+    </center>
+
+</div>
+
+{% endblock %}

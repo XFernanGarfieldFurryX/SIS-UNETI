@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}
+Usuarios
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+```
+<h1>👥 Gestión de Usuarios</h1>
+
+<p>
+    Administración de usuarios registrados en el sistema SIS-UNETI.
+</p>
+
+
+<div class="table-responsive">
+
+    <table class="table table-bordered table-striped">
+
+        <thead>
+
+            <tr>
+
+                <th>ID</th>
+
+                <th>Usuario</th>
+
+                <th>Rol</th>
+
+            </tr>
+
+        </thead>
+
+
+        <tbody>
+
+
+            {% for usuario in usuarios %}
+
+            <tr>
+
+                <td>
+                    {{ usuario.id_usuario }}
+                </td>
+
+
+                <td>
+                    {{ usuario.usuario }}
+                </td>
+
+
+                <td>
+                    {{ usuario.rol }}
+                </td>
+
+
+            </tr>
+
+            {% else %}
+
+            <tr>
+
+                <td colspan="3" class="text-center">
+
+                    No existen usuarios registrados.
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+
+        </tbody>
+
+
+    </table>
+
+
+</div>
+```
+
+</div>
+
+{% endblock %}

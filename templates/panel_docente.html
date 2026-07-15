@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}
+Panel del Docente | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<!-- ===================================================== -->
+<!-- TOPBAR                                               -->
+<!-- ===================================================== -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h2>👨‍🏫 Bienvenido, <strong>{{ session["usuario"] }}</strong></h2>
+        <p>Panel del Docente - Sistema Integrado de Servicios Socioeconómicos (SIS-UNETI)</p>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-user">👨‍🏫 Docente</div>
+        <div class="topbar-clock">
+            <div id="fecha" class="fecha"></div>
+            <div id="hora" class="hora"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- TÍTULO                                               -->
+<!-- ===================================================== -->
+<h1>👨‍🏫 Panel del Docente</h1>
+<p>Bienvenido al Sistema Integrado de Servicios Socioeconómicos de la UNETI.</p>
+
+<!-- ===================================================== -->
+<!-- TARJETAS DE ACCIONES CON BOTONES ESTILIZADOS         -->
+<!-- ===================================================== -->
+<div class="dashboard">
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📄</div>
+        <div class="dashboard-title">Solicitudes Recibidas</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Consulte todas las solicitudes enviadas por los estudiantes.
+        </p>
+        <a href="{{ url_for('solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            📋 Revisar Solicitudes
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">✅</div>
+        <div class="dashboard-title">Evaluaciones</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Realice la evaluación socioeconómica de las solicitudes.
+        </p>
+        <a href="{{ url_for('evaluaciones') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            ⭐ Evaluar Solicitudes
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📝</div>
+        <div class="dashboard-title">Observaciones</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Registre observaciones y recomendaciones para cada solicitud.
+        </p>
+        <a href="{{ url_for('observaciones') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            💬 Gestionar Observaciones
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📊</div>
+        <div class="dashboard-title">Reportes</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Consulte reportes académicos y estadísticos.
+        </p>
+        <a href="{{ url_for('reportes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            📈 Ver Reportes
+        </a>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- FUNCIONES DEL DOCENTE                                -->
+<!-- ===================================================== -->
+<div class="card">
+    <h2>📢 Funciones del Docente</h2>
+    <ul>
+        <li>✔ Revisar solicitudes estudiantiles.</li>
+        <li>✔ Emitir evaluaciones socioeconómicas.</li>
+        <li>✔ Registrar observaciones.</li>
+        <li>✔ Consultar reportes institucionales.</li>
+        <li>✔ Dar seguimiento al proceso de evaluación.</li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Reloj en tiempo real -->
+<script>
+    function actualizarReloj() {
+        const ahora = new Date();
+        document.getElementById("hora").textContent = ahora.toLocaleTimeString("es-VE", {
+            timeZone: "America/Caracas",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        document.getElementById("fecha").textContent = ahora.toLocaleDateString("es-VE", {
+            timeZone: "America/Caracas",
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+</script>
+{% endblock %}

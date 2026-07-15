@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar Observación | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+```
+<div class="card-header">
+    <h2>
+
+        ✏️ Editar Observación
+        
+    </h2>
+</div>
+<div class="card-body">
+    <p>
+
+        Actualiza la información de la observación registrada dentro del sistema SIS-UNETI.
+
+    </p>
+    <form method="POST">
+        <label for="tipo">
+
+            Tipo de Observación
+
+        </label>
+        <select 
+            id="tipo"
+            name="tipo"
+            required
+        >
+            <option value="Académica"
+            {% if observacion.tipo == "Académica" %}selected{% endif %}>
+
+                Académica
+
+            </option>
+            <option value="Disciplinaria"
+            {% if observacion.tipo == "Disciplinaria" %}selected{% endif %}>
+
+                Disciplinaria
+
+            </option>
+            <option value="Administrativa"
+            {% if observacion.tipo == "Administrativa" %}selected{% endif %}>
+
+                Administrativa
+
+            </option>
+            <option value="General"
+            {% if observacion.tipo == "General" %}selected{% endif %}>
+
+                General
+
+            </option>
+        </select>
+        <label for="descripcion">
+
+            Descripción
+
+        </label>
+        <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="5"
+            required
+
+        >{{ observacion.descripcion }}</textarea>
+
+        <div class="acciones-formulario">
+            <button 
+                type="submit"
+                class="btn-nueva"
+            >
+
+                💾 Guardar Cambios
+
+            </button>
+            <a 
+                href="{{ url_for('observaciones') }}"
+                class="btn-cancelar"
+            >
+
+                ↩️ Cancelar
+
+            </a>
+        </div>
+    </form>
+</div>
+```
+</div>
+
+{% endblock %}

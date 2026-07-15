@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}
+Editar Evaluación | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>
+
+            ✏️ Editar Evaluación
+
+        </h2>
+    </div>
+    <div class="card-body">
+        <p>
+
+            Actualiza la información académica registrada en el sistema SIS-UNETI.
+
+        </p>
+        <form method="POST">
+            <label>
+
+                📘 Asignatura
+
+            </label>
+            <input
+                type="text"
+                name="asignatura"
+                value="{{ evaluacion.asignatura }}"
+                required
+            >
+            <label>
+
+                📝 Nota
+
+            </label>
+            <input
+                type="number"
+                name="nota"
+                step="0.01"
+                min="0"
+                max="20"
+                value="{{ evaluacion.nota }}"
+                required
+            >
+            <label>
+
+                📅 Periodo Académico
+
+            </label>
+            <input
+                type="text"
+                name="periodo"
+                value="{{ evaluacion.periodo }}"
+                required
+            >
+            <label>
+
+                💬 Observación
+
+            </label>
+            <textarea
+                name="observacion"
+                rows="4"
+                required
+
+            >{{ evaluacion.observacion }}</textarea>
+
+            <div class="acciones-formulario">
+                <button
+                    type="submit"
+                    class="btn-nueva"
+                >
+
+                    💾 Guardar Cambios
+
+                </button>
+                <a href="{{ url_for('evaluaciones') }}" class="btn-cancelar">
+
+                    ↩️ Cancelar
+
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %} 

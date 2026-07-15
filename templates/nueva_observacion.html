@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}
+Nueva Observación | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+```
+<div class="card-header">
+    <h2>
+
+        📝 Nueva Observación
+
+    </h2>
+</div>
+<div class="card-body">
+    <p>
+
+        Registre una observación dentro del sistema SIS-UNETI.
+        
+    </p>
+    <form method="POST">
+        <label for="tipo">
+
+            📌 Tipo de Observación
+
+        </label>
+        <select id="tipo" name="tipo" required>
+            <option value="">
+
+                Seleccione...
+
+            </option>
+            <option value="Académica">
+
+                Académica
+
+            </option>
+            <option value="Disciplinaria">
+
+                Disciplinaria
+
+            </option>
+            <option value="Administrativa">
+
+                Administrativa
+
+            </option>
+            <option value="General">
+
+                General
+
+            </option>
+        </select>
+        <label for="descripcion">
+
+            💬 Descripción
+
+        </label>
+        <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="5"
+            placeholder="Escriba la observación..."
+            required
+        ></textarea>
+        <div class="acciones-formulario">
+            <button 
+                type="submit"
+                class="btn-nueva"
+            >
+
+                💾 Guardar Observación
+
+            </button>
+            <a 
+                href="{{ url_for('observaciones') }}"
+                class="btn-cancelar"
+            >
+
+                ↩️ Cancelar
+
+            </a>
+        </div>
+    </form>
+</div>
+```
+</div>
+
+{% endblock %}

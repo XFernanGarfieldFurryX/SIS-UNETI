@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}
+Solicitudes | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>📄 Gestión de Solicitudes</h2>
+    </div>
+
+    <div class="card-body">
+        <p>
+            Desde este módulo podrá consultar todas las solicitudes registradas en el sistema.
+        </p>
+
+        <!-- =============================== -->
+        <!-- ENCABEZADO + BOTÓN NUEVA        -->
+        <!-- =============================== -->
+        <div class="encabezado-solicitudes">
+            <h2>📋 Lista de Solicitudes</h2>
+            <!-- ⬇️ Solo estudiantes pueden crear solicitudes -->
+            {% if session['rol'] == 'estudiante' %}
+                <a href="{{ url_for('nueva_solicitud') }}" class="btn-nueva">➕ Nueva Solicitud</a>
+            {% endif %}
+        </div>
+
+        <!-- =============================== -->
+        <!-- TABLA DE SOLICITUDES            -->
+        <!-- =============================== -->
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if solicitudes %}
+                        {% for solicitud in solicitudes %}
+                        <tr>
+                            <td>{{ solicitud.id_solicitud }}</td>
+                            <td>{{ solicitud.usuario }}</td>
+                            <td>{{ solicitud.fecha }}</td>
+                            <td>{{ solicitud.tipo_solicitud }}</td>
+                            <td class="descripcion-tabla">{{ solicitud.descripcion }}</td>
+                            <td>
+                                {% if solicitud.estado == "Pendiente" %}
+                                    <span class="estado pendiente">🟡 Pendiente</span>
+                                {% elif solicitud.estado == "En Revisión" %}
+                                    <span class="estado">🔵 En Revisión</span>
+                                {% elif solicitud.estado == "Aprobada" %}
+                                    <span class="estado activo">🟢 Aprobada</span>
+                                {% elif solicitud.estado == "Rechazada" %}
+                                    <span class="estado rechazado">🔴 Rechazada</span>
+                                {% else %}
+                                    <span class="estado">{{ solicitud.estado }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="acciones-solicitud">
+                                    <!-- Editar: estudiantes y docentes -->
+                                    {% if session['rol'] == 'estudiante' or session['rol'] == 'docente' %}
+                                        <a href="{{ url_for('editar_solicitud', id=solicitud.id_solicitud) }}" class="btn-editar">✏️ Editar</a>
+                                    {% endif %}
+                                    <!-- Eliminar: administradores y docentes -->
+                                    {% if session['rol'] == 'administrador' or session['rol'] == 'docente' %}
+                                        <a href="{{ url_for('eliminar_solicitud', id=solicitud.id_solicitud) }}" class="btn-eliminar" onclick="return confirm('¿Estás seguro de eliminar esta solicitud?');">🗑️ Eliminar</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center">No existen solicitudes registradas.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}
+Reportes | SIS-UNETI
+{% endblock %}
+
+
+{% block content %}
+
+
+<div class="card">
+
+
+    <div class="card-header">
+
+        <h2>
+            📊 Gestión de Reportes
+        </h2>
+
+    </div>
+
+
+
+    <div class="card-body">
+
+
+        <p>
+            Consulta de reportes generados dentro del sistema SIS-UNETI.
+        </p>
+
+
+
+        <div class="encabezado-solicitudes">
+
+
+            <h2>
+                📋 Lista de Reportes
+            </h2>
+
+
+
+            {% if session["rol"] in ["administrador", "docente"] %}
+
+
+            <a href="{{ url_for('nuevo_reporte') }}" class="btn-nueva">
+
+                ➕ Nuevo Reporte
+
+            </a>
+
+
+            {% endif %}
+
+
+
+        </div>
+
+
+
+
+
+        <div class="table-responsive">
+
+
+            <table>
+
+
+                <thead>
+
+
+                    <tr>
+
+                        <th>ID</th>
+                        <th>Título</th>
+                        <th>Descripción</th>
+                        <th>Fecha</th>
+                        <th>Generado por</th>
+
+
+                        {% if session["rol"] in ["administrador", "docente"] %}
+
+                        <th>Acciones</th>
+
+                        {% endif %}
+
+
+
+                    </tr>
+
+
+                </thead>
+
+
+
+
+                <tbody>
+
+
+
+                {% if reportes %}
+
+
+
+                    {% for reporte in reportes %}
+
+
+
+                    <tr>
+
+
+                        <td>
+                            {{ reporte.id_reporte }}
+                        </td>
+
+
+                        <td>
+                            {{ reporte.titulo }}
+                        </td>
+
+
+
+                        <td class="descripcion-tabla">
+
+                            {{ reporte.descripcion }}
+
+                        </td>
+
+
+
+                        <td>
+
+                            {{ reporte.fecha_generacion }}
+
+                        </td>
+
+
+
+                        <td>
+
+                            {{ reporte.usuario }}
+
+                        </td>
+
+
+
+
+                        {% if session["rol"] in ["administrador", "docente"] %}
+
+
+
+                        <td>
+
+
+                            <div class="acciones-solicitud">
+
+
+
+                                <a href="{{ url_for('editar_reporte', id=reporte.id_reporte) }}"
+                                class="btn-editar">
+
+                                    ✏️ Editar
+
+                                </a>
+
+
+
+                                <a href="{{ url_for('eliminar_reporte', id=reporte.id_reporte) }}"
+                                class="btn-eliminar"
+                                onclick="return confirm('¿Seguro que deseas eliminar este reporte?');">
+
+                                    🗑️ Eliminar
+
+                                </a>
+
+
+
+                            </div>
+
+
+                        </td>
+
+
+
+                        {% endif %}
+
+
+
+                    </tr>
+
+
+
+                    {% endfor %}
+
+
+
+
+                {% else %}
+
+
+
+                    <tr>
+
+
+                        <td colspan="6" class="text-center">
+
+                            No existen reportes registrados.
+
+                        </td>
+
+
+                    </tr>
+
+
+
+                {% endif %}
+
+
+
+                </tbody>
+
+
+
+            </table>
+
+
+
+        </div>
+
+
+
+    </div>
+
+
+
+</div>
+
+
+
+{% endblock %}

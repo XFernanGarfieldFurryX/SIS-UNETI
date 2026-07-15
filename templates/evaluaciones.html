@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}
+Evaluaciones | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-header">
+        <h2>
+
+            📚 Gestión de Evaluaciones
+
+        </h2>
+    </div>
+    <div class="card-body">
+        <p>
+
+            Registro y consulta del rendimiento académico de los estudiantes registrados en SIS-UNETI.
+
+        </p>
+        <div class="encabezado-solicitudes">
+            <h2>
+
+                📋 Lista de Evaluaciones
+
+            </h2>
+            <a href="{{ url_for('nueva_evaluacion') }}" class="btn-nueva">
+
+                ➕ Nueva Evaluación
+
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Estudiante</th>
+                        <th>Asignatura</th>
+                        <th>Nota</th>
+                        <th>Periodo</th>
+                        <th>Observación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    {% if evaluaciones %}
+
+                        {% for evaluacion in evaluaciones %}
+
+                        <tr>
+                            <td>
+
+                                {{ evaluacion.id_evaluacion }}
+
+                            </td>
+                            <td>
+
+                                {{ evaluacion.nombres }}
+
+                                {{ evaluacion.apellidos }}
+
+                            </td>
+                            <td>
+
+                                {{ evaluacion.asignatura }}
+
+                            </td>
+                            <td>
+
+                                {{ evaluacion.nota }}
+
+                            </td>
+                            <td>
+
+                                {{ evaluacion.periodo }}
+
+                            </td>
+                            <td class="descripcion-tabla">
+
+                                {{ evaluacion.observacion }}
+
+                            </td>
+                            <td>
+                                <div class="acciones-solicitud">
+                                    <a href="{{ url_for('editar_evaluacion', id=evaluacion.id_evaluacion) }}"
+                                       class="btn-editar">
+
+                                        ✏️ Editar
+
+                                    </a>
+
+                                    <a href="{{ url_for('eliminar_evaluacion', id=evaluacion.id_evaluacion) }}"
+                                       class="btn-eliminar"
+                                       onclick="return confirm('¿Estás seguro de eliminar esta evaluación?');">
+                                        
+                                        🗑️ Eliminar
+
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                        {% endfor %}
+
+                    {% else %}
+
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No existen evaluaciones registradas.
+                            </td>
+                        </tr>
+
+                    {% endif %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+ 

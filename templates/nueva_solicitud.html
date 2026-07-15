@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}
+Nueva Solicitud | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>📝 Registrar Nueva Solicitud</h1>
+
+    <p>
+        Complete el siguiente formulario para registrar una nueva solicitud de beneficio socioeconómico.
+    </p>
+
+    <form action="/nueva_solicitud" method="POST">
+
+        <label for="fecha">
+            Fecha
+        </label>
+
+        <input
+            type="date"
+            id="fecha"
+            name="fecha"
+            required
+        >
+
+        <label for="tipo_solicitud">
+            Tipo de Solicitud
+        </label>
+
+        <select
+            id="tipo_solicitud"
+            name="tipo_solicitud"
+            required
+        >
+
+            <option value="">
+                Seleccione una opción...
+            </option>
+
+
+            <option value="Beca Académica">
+                Beca Académica
+            </option>
+
+
+            <option value="Ayuda Económica">
+                Ayuda Económica
+            </option>
+
+
+            <option value="Comedor Universitario">
+                Comedor Universitario
+            </option>
+
+
+            <option value="Transporte">
+                Transporte
+            </option>
+
+
+            <option value="Material de Estudio">
+                Material de Estudio
+            </option>
+
+
+            <option value="Otro Beneficio">
+                Otro Beneficio
+            </option>
+
+
+        </select>
+
+        <label for="descripcion">
+            Descripción
+        </label>
+
+        <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="6"
+            placeholder="Explique detalladamente su solicitud..."
+            required
+        ></textarea>
+
+        <br><br>
+
+        <button
+            type="submit"
+            class="btn"
+        >
+
+            💾 Registrar Solicitud
+
+        </button>
+
+            # Enviar notificación por correo
+            mensaje = f"""
+            <h2>Nueva Solicitud Registrada</h2>
+            <p>Se ha creado una nueva solicitud en el sistema SIS-UNETI.</p>
+            <p><strong>Tipo:</strong> {tipo}</p>
+            <p><strong>Descripción:</strong> {descripcion}</p>
+            <p><strong>Fecha:</strong> {fecha}</p>
+            <p><strong>Usuario:</strong> {session['usuario']}</p>
+            """
+            enviar_correo('admin@sis-uneti.com', 'Nueva Solicitud en SIS-UNETI', mensaje)
+
+            <div class="form-group">
+            <label for="archivo">📎 Adjuntar Archivo</label>
+            <input type="file" id="archivo" name="archivo" class="form-control">
+            <small>Formatos permitidos: PDF, PNG, JPG, DOC, DOCX</small>
+            </div>
+
+        <a
+            href="/solicitudes"
+            class="btn"
+        >
+
+            📄 Volver al Listado
+
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

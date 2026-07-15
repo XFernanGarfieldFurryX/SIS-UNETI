@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}
+Recuperar Contraseña | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<div class="login-container">
+    <div class="login-card">
+
+        <div class="login-logo">
+            <h2 style="color: #003366;">🔐 Recuperar Contraseña</h2>
+        </div>
+
+        {% if error %}
+        <div class="alerta-error">{{ error }}</div>
+        {% endif %}
+
+        {% if mensaje %}
+        <div class="alerta-exito" style="background:#DFF0D8; color:#3C763D; padding:12px; border-radius:8px; margin-bottom:15px;">
+            {{ mensaje }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('recuperar') }}">
+            <div class="input-group">
+                <label for="usuario">👤 Usuario</label>
+                <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu nombre de usuario" required value="{{ usuario if usuario else '' }}">
+            </div>
+
+            <button type="submit" class="btn login-btn">📧 Enviar código de recuperación</button>
+        </form>
+
+        <p style="text-align:center; margin-top:20px;">
+            <a href="{{ url_for('login') }}" style="color:#003366;">← Volver al inicio de sesión</a>
+        </p>
+
+        {% if usuario %}
+        <p style="text-align:center; margin-top:10px;">
+            <a href="{{ url_for('verificar_codigo', usuario=usuario) }}" style="color:#003366;">¿Ya tienes un código? Verificar aquí</a>
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

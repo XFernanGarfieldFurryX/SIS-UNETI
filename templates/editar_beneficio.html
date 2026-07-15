@@ -1,0 +1,92 @@
+ {% extends "base.html" %}
+
+{% block title %}
+Editar Beneficio | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<h1>✏️ Editar Beneficio</h1>
+
+<p>
+    Modifique la información del beneficio seleccionado.
+</p>
+
+<div class="card">
+
+    <form method="POST">
+
+        <label for="nombre_beneficio">
+            Nombre del Beneficio
+        </label>
+
+        <input
+            type="text"
+            id="nombre_beneficio"
+            name="nombre_beneficio"
+            value="{{ beneficio.nombre_beneficio }}"
+            required
+        >
+
+        <label for="descripcion">
+            Descripción
+        </label>
+
+        <textarea
+            id="descripcion"
+            name="descripcion"
+            rows="5"
+            required>{{ beneficio.descripcion }}</textarea>
+
+        <label for="estado">
+            Estado
+        </label>
+
+        <select
+            id="estado"
+            name="estado"
+            required>
+
+            <option
+                value="Pendiente"
+                {% if beneficio.estado == "Pendiente" %}selected{% endif %}>
+                Pendiente
+            </option>
+
+            <option
+                value="Aprobado"
+                {% if beneficio.estado == "Aprobado" %}selected{% endif %}>
+                Aprobado
+            </option>
+
+            <option
+                value="Rechazado"
+                {% if beneficio.estado == "Rechazado" %}selected{% endif %}>
+                Rechazado
+            </option>
+
+        </select>
+
+        <br><br>
+
+        <button
+            type="submit"
+            class="btn">
+
+            💾 Guardar Cambios
+
+        </button>
+
+        <a
+            href="{{ url_for('beneficios') }}"
+            class="btn btn-danger">
+
+            Cancelar
+
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

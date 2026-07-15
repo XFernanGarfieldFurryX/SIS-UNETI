@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}
+Panel del Estudiante | SIS-UNETI
+{% endblock %}
+
+{% block content %}
+
+<!-- ===================================================== -->
+<!-- TOPBAR                                               -->
+<!-- ===================================================== -->
+<div class="topbar">
+    <div class="topbar-left">
+        <h2>👨‍🎓 Bienvenido, <strong>{{ session["usuario"] }}</strong></h2>
+        <p>Panel del Estudiante - Sistema Integrado de Servicios Socioeconómicos (SIS-UNETI)</p>
+    </div>
+    <div class="topbar-right">
+        <div class="topbar-user">👨‍🎓 Estudiante</div>
+        <div class="topbar-clock">
+            <div id="fecha" class="fecha"></div>
+            <div id="hora" class="hora"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- TÍTULO                                               -->
+<!-- ===================================================== -->
+<h1>🎓 Panel del Estudiante</h1>
+<p>Bienvenido al Sistema Integrado de Servicios Socioeconómicos de la UNETI.</p>
+
+<!-- ===================================================== -->
+<!-- TARJETAS DE ACCIONES CON BOTONES ESTILIZADOS         -->
+<!-- ===================================================== -->
+<div class="dashboard">
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📝</div>
+        <div class="dashboard-title">Nueva Solicitud</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Registre una nueva solicitud de beneficio socioeconómico.
+        </p>
+        <a href="{{ url_for('nueva_solicitud') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center; background: #198754;">
+            ➕ Crear Solicitud
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📄</div>
+        <div class="dashboard-title">Mis Solicitudes</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Consulte sus solicitudes registradas dentro del sistema.
+        </p>
+        <a href="{{ url_for('mis_solicitudes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            📋 Consultar
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">🎁</div>
+        <div class="dashboard-title">Beneficios</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Visualice los beneficios socioeconómicos disponibles.
+        </p>
+        <a href="{{ url_for('beneficios') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            🎯 Ver Beneficios
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">📊</div>
+        <div class="dashboard-title">Reportes</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Consulte información y reportes disponibles dentro del sistema.
+        </p>
+        <a href="{{ url_for('reportes') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            📈 Ver Reportes
+        </a>
+    </div>
+    <div class="dashboard-card">
+        <div class="dashboard-icon">💬</div>
+        <div class="dashboard-title">Mis Observaciones</div>
+        <p style="margin: 10px 0; color: var(--gris-texto); font-size: 14px;">
+            Consulte las observaciones realizadas sobre su perfil.
+        </p>
+        <a href="{{ url_for('mis_observaciones') }}" class="btn" style="display: inline-block; margin-top: 10px; width: 100%; text-align: center;">
+            📝 Ver Observaciones
+        </a>
+    </div>
+</div>
+
+<!-- ===================================================== -->
+<!-- NOTIFICACIONES / AVISOS INSTITUCIONALES              -->
+<!-- ===================================================== -->
+<div class="card">
+    <h2>📢 Avisos Institucionales</h2>
+    <ul>
+        <li>✔ Mantenga actualizados sus datos personales.</li>
+        <li>✔ Revise periódicamente el estado de sus solicitudes.</li>
+        <li>✔ Consulte los beneficios publicados por la universidad.</li>
+        <li>✔ Contacte al personal administrativo ante cualquier inconveniente.</li>
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Reloj en tiempo real -->
+<script>
+    function actualizarReloj() {
+        const ahora = new Date();
+        document.getElementById("hora").textContent = ahora.toLocaleTimeString("es-VE", {
+            timeZone: "America/Caracas",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+        });
+        document.getElementById("fecha").textContent = ahora.toLocaleDateString("es-VE", {
+            timeZone: "America/Caracas",
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
+        });
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
+</script>
+{% endblock %}
