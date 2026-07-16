@@ -434,68 +434,107 @@ def inicializar_usuarios():
         conexion.close()
 
 # ============================================
-# RUTAS PÚBLICAS
+# FUNCIÓN PARA VERIFICAR USUARIOS (TEMPORAL)
 # ============================================
-@app.route("/")
-def inicio():
-    return render_template("inicio.html")
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        usuario = request.form["usuario"]
-        password = request.form["password"]
-
-        conexion = obtener_conexion()
-        if conexion is None:
-            return render_template("login.html", error="Error de conexión con la base de datos.")
-
-        cursor = conexion.cursor()
-        cursor.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
-        usuario_db = cursor.fetchone()
+def verificar_usuarios():
+    conexion = obtener_conexion()
+    if conexion is None:
+        print("❌ No se pudo conectar para verificar usuarios")
+        return
+    
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("SELECT id_usuario, usuario, rol FROM usuarios")
+        usuarios = cursor.fetchall()
+        print("📋 USUARIOS EN LA BASE DE DATOS:")
+        for u in usuarios:
+            print(f"  - ID: {u['id_usuario']}, Usuario: {u['usuario']}, Rol: {u['rol']}")
+        
+        if len(usuarios) == 0:
+            print("⚠️ No hay usuarios en la base de datos!")
+    except Exception as e:
+        print(f"❌ Error al verificar usuarios: {e}")
+    finally:
         cursor.close()
         conexion.close()
 
-        if usuario_db and check_password_hash(usuario_db["password"], password):
-            session["id_usuario"] = usuario_db["id_usuario"]
-            session["usuario"] = usuario_db["usuario"]
-            session["rol"] = usuario_db["rol"]
-            session.permanent = True
+# Ejecutar verificación al iniciar
+with app.app_context():
+    crear_tablas()
+    inicializar_usuarios()
+    verificar_usuarios()
 
-            ip = request.remote_addr
-            fecha_hora = obtener_fecha_venezuela()
-            dia_semana = fecha_hora.strftime("%A")
-            fecha_formateada = fecha_hora.strftime("%d/%m/%Y")
-            hora_formateada = fecha_hora.strftime("%I:%M:%S %p")
-
-            registrar_auditoria("Inicio de sesión", "Login")
-
-            html = f"""
-            <h2 style="color:#003366;">🔐 Inicio de sesión en SIS-UNETI</h2>
-            <p><strong>Usuario:</strong> {session['usuario']}</p>
-            <p><strong>Rol:</strong> {session['rol']}</p>
-            <p><strong>Día:</strong> {dia_semana}</p>
-            <p><strong>Fecha:</strong> {fecha_formateada}</p>
-            <p><strong>Hora:</strong> {hora_formateada}</p>
-            <p><strong>Dirección IP:</strong> {ip}</p>
-            <hr>
-            <p>Este correo es una notificación automática del sistema SIS-UNETI.</p>
-            """
-            enviar_correo(
-                "docoutofernandodaniel@gmail.com",
-                f"🔐 Inicio de sesión - {session['usuario']} - {fecha_formateada}",
-                html
-            )
-
-            if usuario_db["rol"] == "administrador":
-                return redirect("/administrador")
-            elif usuario_db["rol"] == "docente":
-                return redirect("/docente")
+# ============================================
+# RUTAS PÚBLICAS
+# ============================================
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        usuario = request.form.get("usuario", "").strip()
+        password = request.form.get("password", "").strip()
+        
+        print(f"🔍 Intento de login - Usuario: {usuario}")
+        
+        if not usuario or not password:
+            print("❌ Usuario o contraseña vacíos")
+            return render_template("login.html", error="Por favor, complete todos los campos.")
+        
+        conexion = obtener_conexion()
+        if conexion is None:
+            print("❌ Error de conexión a la base de datos")
+            return render_template("login.html", error="Error de conexión con la base de datos.")
+        
+        cursor = conexion.cursor()
+        try:
+            cursor.execute("SELECT * FROM usuarios WHERE usuario=%s", (usuario,))
+            usuario_db = cursor.fetchone()
+            print(f"🔍 Usuario encontrado en BD: {usuario_db is not None}")
+            
+            if usuario_db:
+                print(f"🔍 Contraseña almacenada (hash): {usuario_db['password'][:20]}...")
+                print(f"🔍 Contraseña ingresada: {password}")
+                
+                # Verificar contraseña
+                password_valida = check_password_hash(usuario_db["password"], password)
+                print(f"🔍 Contraseña válida: {password_valida}")
+                
+                if password_valida:
+                    session["id_usuario"] = usuario_db["id_usuario"]
+                    session["usuario"] = usuario_db["usuario"]
+                    session["rol"] = usuario_db["rol"]
+                    session.permanent = True
+                    
+                    print(f"✅ Sesión iniciada: {usuario_db['usuario']} (rol: {usuario_db['rol']})")
+                    
+                    # Registrar auditoría
+                    registrar_auditoria("Inicio de sesión", "Login")
+                    
+                    # Redirigir según rol
+                    if usuario_db["rol"] == "administrador":
+                        print("➡️ Redirigiendo a /administrador")
+                        return redirect("/administrador")
+                    elif usuario_db["rol"] == "docente":
+                        print("➡️ Redirigiendo a /docente")
+                        return redirect("/docente")
+                    else:
+                        print("➡️ Redirigiendo a /estudiante")
+                        return redirect("/estudiante")
+                else:
+                    print("❌ Contraseña incorrecta")
+                    return render_template("login.html", error="Usuario o contraseña incorrectos")
             else:
-                return redirect("/estudiante")
-        else:
-            return render_template("login.html", error="Usuario o contraseña incorrectos")
-
+                print(f"❌ Usuario no encontrado: {usuario}")
+                return render_template("login.html", error="Usuario o contraseña incorrectos")
+                
+        except Exception as e:
+            print(f"❌ Error en login: {e}")
+            import traceback
+            traceback.print_exc()
+            return render_template("login.html", error="Error interno al procesar el login.")
+        finally:
+            cursor.close()
+            conexion.close()
+    
     return render_template("login.html")
 
 # ============================================
@@ -1838,6 +1877,7 @@ def error_servidor(error):
 with app.app_context():
     crear_tablas()
     inicializar_usuarios()
+    verificar_usuarios()  # Esto mostrará los usuarios en los logs
 
 # ==========================
 # INICIO DEL SERVIDOR
