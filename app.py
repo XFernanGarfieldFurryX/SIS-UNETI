@@ -92,6 +92,7 @@ def obtener_conexion():
             database=app.config["MYSQL_DB"],
             charset=app.config["MYSQL_CHARSET"],
             cursorclass=pymysql.cursors.DictCursor
+            connect_timeout=10
         )
         return conexion
     except pymysql.MySQLError as error:
