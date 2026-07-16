@@ -11,7 +11,7 @@ from datetime import timedelta
 import os
 from werkzeug.utils import secure_filename
 import random
- 
+
 # ==========================================
 # REPORTLAB PARA PDF
 # ==========================================
@@ -50,7 +50,7 @@ app.secret_key = app.config["SECRET_KEY"]
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = False
+app.config["SESSION_COOKIE_SECURE"] = True  # Solo HTTPS en producción
 
 # ==========================
 # CONFIGURACIÓN DE CORREO
@@ -81,11 +81,10 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ==========================
-# CONEXIÓN MYSQL
+# CONEXIÓN MYSQL (CORREGIDA)
 # ==========================
 def obtener_conexion():
     try:
-        import pymysql  # Import local para asegurar disponibilidad
         conexion = pymysql.connect(
             host=app.config["MYSQL_HOST"],
             port=app.config["MYSQL_PORT"],
@@ -1638,6 +1637,53 @@ def error_servidor(error):
     return render_template("error500.html"), 500
 
 # ==========================
+# FUNCIÓN PARA INICIALIZAR USUARIOS (NUEVA)
+# ==========================
+def inicializar_usuarios():
+    conexion = obtener_conexion()
+    if conexion is None:
+        print("⚠️ No se pudo conectar a la BD para inicializar usuarios.")
+        return
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'administrador'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("admin123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("admin", password_hash, "administrador", "admin@uneti.edu.ve")
+            )
+            print("✅ Usuario administrador creado: admin / admin123")
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'docente'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("docente123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("docente", password_hash, "docente", "docente@uneti.edu.ve")
+            )
+            print("✅ Usuario docente creado: docente / docente123")
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'estudiante'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("estudiante123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("estudiante", password_hash, "estudiante", "estudiante@uneti.edu.ve")
+            )
+            print("✅ Usuario estudiante creado: estudiante / estudiante123")
+        conexion.commit()
+    except Exception as e:
+        print(f"❌ Error al crear usuarios por defecto: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
+
+# ==========================
+# LLAMADA A INICIALIZACIÓN
+# ==========================
+with app.app_context():
+    inicializar_usuarios()
+
+# ==========================
 # INICIO DEL SERVIDOR
 # ==========================
 if __name__ == "__main__":
@@ -1652,4 +1698,4 @@ if __name__ == "__main__":
         conexion.close()
     else:
         print("⚠️ Servidor iniciado sin conexión a Base de Datos.")
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
