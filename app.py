@@ -36,6 +36,12 @@ load_dotenv()
 # ==========================
 app = Flask(__name__)
 app.config.from_object(Config)
+print("🔍 CONFIGURACIÓN DE BASE DE DATOS:")
+print(f"  HOST: {app.config['MYSQL_HOST']}")
+print(f"  PORT: {app.config['MYSQL_PORT']}")
+print(f"  USER: {app.config['MYSQL_USER']}")
+print(f"  DB: {app.config['MYSQL_DB']}")
+print(f"  PASSWORD: {'*' * len(app.config['MYSQL_PASSWORD'])}")
 app.secret_key = app.config["SECRET_KEY"]
 
 # ==========================
