@@ -84,6 +84,7 @@ def allowed_file(filename):
 # ==========================
 def obtener_conexion():
     try:
+        print(f"DEBUG: Conectando a {app.config['MYSQL_HOST']}:{app.config['MYSQL_PORT']} con {app.config['MYSQL_USER']}")
         conexion = pymysql.connect(
             host=app.config["MYSQL_HOST"],
             port=app.config["MYSQL_PORT"],
@@ -91,12 +92,14 @@ def obtener_conexion():
             password=app.config["MYSQL_PASSWORD"],
             database=app.config["MYSQL_DB"],
             charset=app.config["MYSQL_CHARSET"],
-            cursorclass=pymysql.cursors.DictCursor
+            cursorclass=pymysql.cursors.DictCursor,
             connect_timeout=10
         )
+        conexion.ping(reconnect=True)
+        print("✅ MYSQL RAILWAY CONECTADO")
         return conexion
-    except pymysql.MySQLError as error:
-        print("❌ Error de conexión MySQL:")
+    except Exception as error:
+        print("❌ ERROR MYSQL:")
         print(error)
         return None
 
