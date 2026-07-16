@@ -81,7 +81,7 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # ==========================
-# CONEXIÓN MYSQL (CORREGIDA)
+# CONEXIÓN MYSQL
 # ==========================
 def obtener_conexion():
     try:
@@ -113,7 +113,6 @@ def obtener_fecha_venezuela():
 # AUDITORÍA DEL SISTEMA
 # ==========================================
 def registrar_auditoria(accion, modulo):
-    """Registra una acción en la tabla auditoria y devuelve el ID insertado."""
     if "id_usuario" not in session:
         return None
     conexion = obtener_conexion()
@@ -145,11 +144,7 @@ def registrar_auditoria(accion, modulo):
         cursor.close()
         conexion.close() 
         
-# ==========================================
-# REGISTRAR DETALLE DE AUDITORÍA
-# ==========================================
 def registrar_detalle_auditoria(id_auditoria, campo, valor_anterior, valor_nuevo):
-    """Registra un cambio específico en la tabla detalle_auditoria"""
     if not id_auditoria:
         return
     conexion = obtener_conexion()
@@ -167,11 +162,8 @@ def registrar_detalle_auditoria(id_auditoria, campo, valor_anterior, valor_nuevo
         print(f"❌ Error al registrar detalle de auditoría: {e}")
     finally:
         cursor.close()
-        conexion.close()  
+        conexion.close()
 
-# ==========================================
-# FUNCIÓN PARA ENVIAR CORREOS (UNIFICADA)
-# ==========================================
 def enviar_correo(destinatario, asunto, mensaje_html):
     try:
         msg = Message(
@@ -182,7 +174,6 @@ def enviar_correo(destinatario, asunto, mensaje_html):
         )
         mail.send(msg)
         print(f"✅ Correo enviado a {destinatario}")
-        # Registrar auditoría si hay sesión
         if "id_usuario" in session:
             registrar_auditoria(
                 f"Correo enviado a {destinatario}",
@@ -219,15 +210,184 @@ def rol_requerido(*roles):
     return decorador
 
 # ============================================
+# FUNCIONES DE INICIALIZACIÓN
+# ============================================
+def crear_tablas():
+    conexion = obtener_conexion()
+    if conexion is None:
+        print("❌ No se pudo conectar para crear tablas")
+        return
+    cursor = conexion.cursor()
+    sql_script = """
+    CREATE TABLE IF NOT EXISTS usuarios (
+        id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+        usuario VARCHAR(50) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        rol ENUM('administrador', 'docente', 'estudiante') NOT NULL,
+        email VARCHAR(100),
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS estudiantes (
+        id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        cedula VARCHAR(20) UNIQUE NOT NULL,
+        nombres VARCHAR(100) NOT NULL,
+        apellidos VARCHAR(100) NOT NULL,
+        carrera VARCHAR(100),
+        semestre INT,
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS docentes (
+        id_docente INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        cedula VARCHAR(20) UNIQUE NOT NULL,
+        nombres VARCHAR(100) NOT NULL,
+        apellidos VARCHAR(100) NOT NULL,
+        departamento VARCHAR(100),
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS solicitudes (
+        id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        fecha DATE NOT NULL,
+        tipo_solicitud VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        estado ENUM('Pendiente', 'Aprobada', 'Rechazada') DEFAULT 'Pendiente',
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS beneficios (
+        id_beneficio INT AUTO_INCREMENT PRIMARY KEY,
+        id_estudiante INT NOT NULL,
+        nombre_beneficio VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        fecha_solicitud DATE NOT NULL,
+        estado ENUM('Pendiente', 'Aprobado', 'Rechazado') DEFAULT 'Pendiente',
+        FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS evaluaciones (
+        id_evaluacion INT AUTO_INCREMENT PRIMARY KEY,
+        id_estudiante INT NOT NULL,
+        asignatura VARCHAR(100) NOT NULL,
+        nota DECIMAL(5,2),
+        periodo VARCHAR(20),
+        observacion TEXT,
+        FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS reportes (
+        id_reporte INT AUTO_INCREMENT PRIMARY KEY,
+        titulo VARCHAR(200) NOT NULL,
+        descripcion TEXT,
+        tipo VARCHAR(50),
+        fecha_generacion DATE NOT NULL,
+        generado_por INT NOT NULL,
+        FOREIGN KEY (generado_por) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS observaciones (
+        id_observacion INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        tipo VARCHAR(50),
+        descripcion TEXT,
+        fecha DATETIME NOT NULL,
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS auditoria (
+        id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        usuario VARCHAR(50),
+        rol VARCHAR(20),
+        accion VARCHAR(100) NOT NULL,
+        modulo VARCHAR(50),
+        fecha DATETIME NOT NULL,
+        ip VARCHAR(45),
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS detalle_auditoria (
+        id_detalle INT AUTO_INCREMENT PRIMARY KEY,
+        id_auditoria INT NOT NULL,
+        campo VARCHAR(50),
+        valor_anterior TEXT,
+        valor_nuevo TEXT,
+        FOREIGN KEY (id_auditoria) REFERENCES auditoria(id_auditoria) ON DELETE CASCADE
+    );
+    
+    CREATE TABLE IF NOT EXISTS reset_codigos (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        id_usuario INT NOT NULL,
+        codigo VARCHAR(6) NOT NULL,
+        fecha_expiracion DATETIME NOT NULL,
+        usado BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
+    );
+    """
+    try:
+        commands = sql_script.split(';')
+        for command in commands:
+            command = command.strip()
+            if command:
+                cursor.execute(command)
+        conexion.commit()
+        print("✅ Tablas creadas exitosamente")
+    except Exception as e:
+        print(f"❌ Error al crear tablas: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
+
+def inicializar_usuarios():
+    conexion = obtener_conexion()
+    if conexion is None:
+        print("⚠️ No se pudo conectar a la BD para inicializar usuarios.")
+        return
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'administrador'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("admin123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("admin", password_hash, "administrador", "admin@uneti.edu.ve")
+            )
+            print("✅ Usuario administrador creado: admin / admin123")
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'docente'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("docente123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("docente", password_hash, "docente", "docente@uneti.edu.ve")
+            )
+            print("✅ Usuario docente creado: docente / docente123")
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'estudiante'")
+        if cursor.fetchone()["total"] == 0:
+            password_hash = generate_password_hash("estudiante123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("estudiante", password_hash, "estudiante", "estudiante@uneti.edu.ve")
+            )
+            print("✅ Usuario estudiante creado: estudiante / estudiante123")
+        conexion.commit()
+    except Exception as e:
+        print(f"❌ Error al crear usuarios por defecto: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
+
+# ============================================
 # RUTAS PÚBLICAS
 # ============================================
 @app.route("/")
 def inicio():
     return render_template("inicio.html")
 
-# ============================================
-# LOGIN
-# ============================================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -287,9 +447,8 @@ def login():
     return render_template("login.html")
 
 # ============================================
-# RECUPERACIÓN CON CÓDIGO DE 6 DÍGITOS
+# RECUPERACIÓN DE CONTRASEÑA (resumido)
 # ============================================
-
 def generar_codigo_recuperacion(id_usuario):
     codigo = str(random.randint(100000, 999999))
     expiracion = datetime.now() + timedelta(minutes=10)
@@ -479,80 +638,8 @@ def restablecer():
     return render_template("restablecer.html")
 
 # ============================================
-# RUTA PARA PROBAR CORREO (DIAGNÓSTICO)
-# ============================================
-@app.route("/diagnostico_correo")
-def diagnostico_correo():
-    try:
-        import smtplib
-        import socket
-        
-        try:
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
-            server.ehlo()
-            resultado = "✅ Conexión SSL (puerto 465) exitosa"
-            server.close()
-        except Exception as e1:
-            try:
-                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
-                resultado = "✅ Conexión TLS (puerto 587) exitosa"
-                server.close()
-            except Exception as e2:
-                resultado = f"❌ Ambas conexiones fallaron. SSL: {e1}, TLS: {e2}"
-        
-        return f"""
-        <h2>🔍 Diagnóstico de correo</h2>
-        <p><strong>Configuración actual:</strong></p>
-        <ul>
-            <li><strong>MAIL_SERVER:</strong> {app.config['MAIL_SERVER']}</li>
-            <li><strong>MAIL_PORT:</strong> {app.config['MAIL_PORT']}</li>
-            <li><strong>MAIL_USERNAME:</strong> {app.config['MAIL_USERNAME']}</li>
-            <li><strong>MAIL_PASSWORD:</strong> {'*' * len(app.config['MAIL_PASSWORD'])}</li>
-        </ul>
-        <p><strong>Diagnóstico:</strong> {resultado}</p>
-        <br>
-        <p>Si ves errores de autenticación, genera una nueva contraseña de aplicación en Gmail.</p>
-        <a href="/recuperar">Volver a recuperar</a>
-        """
-    except Exception as e:
-        return f"❌ Error en diagnóstico: {e}"
-
-# ============================================
-# RUTA PARA PROBAR CORREO (ENVÍO)
-# ============================================
-@app.route("/enviar_prueba")
-@login_requerido
-def enviar_prueba():
-    resultado = enviar_correo(
-        "docoutofernandodaniel@gmail.com",
-        "📧 Prueba de correo SIS-UNETI",
-        f"""
-        <h1 style="color:#003366;">¡Correo enviado desde SIS-UNETI!</h1>
-        <p>Si ves esto, la configuración de correo funciona correctamente. 🚀</p>
-        <hr>
-        <p><strong>Fecha:</strong> {datetime.now().strftime("%d/%m/%Y %H:%M")}</p>
-        <p><strong>Usuario:</strong> {session.get("usuario", "Desconocido")}</p>
-        """
-    )
-    if resultado:
-        return """
-        <h2 style="color:green;">✅ Correo enviado correctamente</h2>
-        <p>Revisa tu bandeja de entrada o la carpeta de spam.</p>
-        <a href="/administrador">Volver al panel</a>
-        """
-    else:
-        return """
-        <h2 style="color:red;">❌ Error al enviar el correo</h2>
-        <p>Revisa la consola de Flask para ver el error detallado.</p>
-        <a href="/administrador">Volver al panel</a>
-        """
-
-# ==========================
 # CERRAR SESIÓN
-# ==========================
+# ============================================
 @app.route("/logout")
 @login_requerido
 def logout():
@@ -610,9 +697,6 @@ def administrador():
         return "Error de conexión con la base de datos."
     cursor = conexion.cursor()
     
-    # ============================================
-    # ESTADÍSTICAS
-    # ============================================
     cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol='estudiante'")
     total_estudiantes = cursor.fetchone()["total"]
     cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol='docente'")
@@ -628,9 +712,6 @@ def administrador():
     cursor.execute("SELECT COUNT(*) AS total FROM solicitudes WHERE estado='Rechazada'")
     rechazadas = cursor.fetchone()["total"]
     
-    # ============================================
-    # ACTIVIDAD RECIENTE (AUDITORÍA)
-    # ============================================
     cursor.execute("""
         SELECT 
             DATE_FORMAT(fecha, '%d/%m/%Y %H:%i') AS fecha_formateada,
@@ -644,9 +725,6 @@ def administrador():
     """)
     actividad = cursor.fetchall()
     
-    # ============================================
-    # NOTIFICACIONES (SIEMPRE HAY AL MENOS UNA)
-    # ============================================
     notificaciones = []
     if pendientes > 0:
         notificaciones.append({
@@ -856,7 +934,7 @@ def verificar_rol():
     if "usuario" not in session:
         return "No has iniciado sesión."
     return f"Usuario: {session['usuario']}<br>Rol: <strong>{session['rol']}</strong>"
-    
+
 # ============================================
 # GESTIÓN DE BENEFICIOS
 # ============================================
@@ -960,7 +1038,7 @@ def editar_beneficio(id):
     cursor.close()
     conexion.close()
     return render_template("editar_beneficio.html", beneficio=beneficio_anterior)
-    
+
 @app.route("/eliminar_beneficio/<int:id>")
 @login_requerido
 @rol_requerido("administrador", "docente")
@@ -1300,7 +1378,6 @@ def auditoria():
 
     cursor = conexion.cursor()
 
-    # Estadísticas generales
     cursor.execute("SELECT COUNT(*) AS total FROM auditoria")
     total_acciones = cursor.fetchone()["total"]
 
@@ -1313,7 +1390,6 @@ def auditoria():
     cursor.execute("SELECT COUNT(*) AS total FROM auditoria WHERE accion LIKE 'Eliminó%'")
     total_eliminaciones = cursor.fetchone()["total"]
 
-    # Estadísticas avanzadas
     cursor.execute("SELECT usuario, COUNT(*) AS total FROM auditoria GROUP BY usuario ORDER BY total DESC LIMIT 1")
     usuario_activo = cursor.fetchone()
 
@@ -1335,7 +1411,6 @@ def auditoria():
     cursor.execute("SELECT accion, COUNT(*) AS total FROM auditoria GROUP BY accion ORDER BY total DESC LIMIT 10")
     acciones_tipo = cursor.fetchall()
 
-    # Construcción de consulta con filtros
     consulta = """
         SELECT id_auditoria, usuario, rol, accion, modulo, fecha, ip
         FROM auditoria
@@ -1397,9 +1472,6 @@ def auditoria():
         total_paginas=total_paginas
     )
 
-# ============================================
-# EXPORTAR AUDITORÍA A PDF
-# ============================================
 @app.route("/auditoria/pdf")
 @login_requerido
 @rol_requerido("administrador")
@@ -1469,9 +1541,6 @@ def exportar_pdf():
     except Exception as e:
         return f"Error al generar el PDF: {str(e)}"
 
-# ============================================
-# EXPORTAR AUDITORÍA A EXCEL
-# ============================================
 @app.route("/auditoria/excel")
 @login_requerido
 @rol_requerido("administrador")
@@ -1549,9 +1618,6 @@ def exportar_excel():
     except Exception as e:
         return f"Error al generar el Excel: {str(e)}"
 
-# ============================================
-# GESTIÓN DE HISTORIALES (LIMPIEZA)
-# ============================================
 @app.route("/limpiar_historiales", methods=["GET"])
 @login_requerido
 @rol_requerido("administrador")
@@ -1560,7 +1626,6 @@ def limpiar_historiales():
     if conexion is None:
         flash("Error de conexión con la base de datos.", "error")
         return redirect(url_for("administrador"))
-    
     cursor = conexion.cursor()
     cursor.execute("SELECT COUNT(*) AS total FROM auditoria")
     total_auditoria = cursor.fetchone()["total"]
@@ -1568,7 +1633,6 @@ def limpiar_historiales():
     total_detalle = cursor.fetchone()["total"]
     cursor.close()
     conexion.close()
-    
     return render_template(
         "limpiar_historiales.html",
         total_auditoria=total_auditoria,
@@ -1580,14 +1644,11 @@ def limpiar_historiales():
 @rol_requerido("administrador")
 def ejecutar_limpieza():
     opcion = request.form.get("opcion", "completa")
-    
     conexion = obtener_conexion()
     if conexion is None:
         flash("Error de conexión con la base de datos.", "error")
         return redirect(url_for("limpiar_historiales"))
-    
     cursor = conexion.cursor()
-    
     try:
         if opcion == "completa":
             cursor.execute("DELETE FROM detalle_auditoria")
@@ -1606,15 +1667,12 @@ def ejecutar_limpieza():
         else:
             flash("⚠️ Opción no válida.", "error")
             return redirect(url_for("limpiar_historiales"))
-        
         conexion.commit()
         registrar_auditoria(f"Limpieza de historial - Opción: {opcion}", "Mantenimiento")
         cursor.close()
         conexion.close()
-        
         flash(mensaje, "success")
         return redirect(url_for("limpiar_historiales"))
-    
     except Exception as e:
         try:
             conexion.rollback()
@@ -1637,50 +1695,10 @@ def error_servidor(error):
     return render_template("error500.html"), 500
 
 # ==========================
-# FUNCIÓN PARA INICIALIZAR USUARIOS (NUEVA)
-# ==========================
-def inicializar_usuarios():
-    conexion = obtener_conexion()
-    if conexion is None:
-        print("⚠️ No se pudo conectar a la BD para inicializar usuarios.")
-        return
-    cursor = conexion.cursor()
-    try:
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'administrador'")
-        if cursor.fetchone()["total"] == 0:
-            password_hash = generate_password_hash("admin123")
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
-                ("admin", password_hash, "administrador", "admin@uneti.edu.ve")
-            )
-            print("✅ Usuario administrador creado: admin / admin123")
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'docente'")
-        if cursor.fetchone()["total"] == 0:
-            password_hash = generate_password_hash("docente123")
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
-                ("docente", password_hash, "docente", "docente@uneti.edu.ve")
-            )
-            print("✅ Usuario docente creado: docente / docente123")
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'estudiante'")
-        if cursor.fetchone()["total"] == 0:
-            password_hash = generate_password_hash("estudiante123")
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
-                ("estudiante", password_hash, "estudiante", "estudiante@uneti.edu.ve")
-            )
-            print("✅ Usuario estudiante creado: estudiante / estudiante123")
-        conexion.commit()
-    except Exception as e:
-        print(f"❌ Error al crear usuarios por defecto: {e}")
-    finally:
-        cursor.close()
-        conexion.close()
-
-# ==========================
-# LLAMADA A INICIALIZACIÓN
+# INICIALIZACIÓN DEL SISTEMA
 # ==========================
 with app.app_context():
+    crear_tablas()
     inicializar_usuarios()
 
 # ==========================
@@ -1692,152 +1710,4 @@ if __name__ == "__main__":
         🚀 SIS-UNETI INICIANDO...
     =====================================
     """)
-    conexion = obtener_conexion()
-    if conexion:
-        print("✅ Conexión MySQL establecida correctamente.")
-        conexion.close()
-    else:
-        print("⚠️ Servidor iniciado sin conexión a Base de Datos.")
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-def crear_tablas():
-    """Crea todas las tablas si no existen"""
-    conexion = obtener_conexion()
-    if conexion is None:
-        print("❌ No se pudo conectar para crear tablas")
-        return
-    
-    cursor = conexion.cursor()
-    
-    # Script SQL completo
-    sql_script = """
-    CREATE TABLE IF NOT EXISTS usuarios (
-        id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-        usuario VARCHAR(50) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        rol ENUM('administrador', 'docente', 'estudiante') NOT NULL,
-        email VARCHAR(100),
-        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-    
-    CREATE TABLE IF NOT EXISTS estudiantes (
-        id_estudiante INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        cedula VARCHAR(20) UNIQUE NOT NULL,
-        nombres VARCHAR(100) NOT NULL,
-        apellidos VARCHAR(100) NOT NULL,
-        carrera VARCHAR(100),
-        semestre INT,
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS docentes (
-        id_docente INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        cedula VARCHAR(20) UNIQUE NOT NULL,
-        nombres VARCHAR(100) NOT NULL,
-        apellidos VARCHAR(100) NOT NULL,
-        departamento VARCHAR(100),
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS solicitudes (
-        id_solicitud INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        fecha DATE NOT NULL,
-        tipo_solicitud VARCHAR(100) NOT NULL,
-        descripcion TEXT,
-        estado ENUM('Pendiente', 'Aprobada', 'Rechazada') DEFAULT 'Pendiente',
-        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS beneficios (
-        id_beneficio INT AUTO_INCREMENT PRIMARY KEY,
-        id_estudiante INT NOT NULL,
-        nombre_beneficio VARCHAR(100) NOT NULL,
-        descripcion TEXT,
-        fecha_solicitud DATE NOT NULL,
-        estado ENUM('Pendiente', 'Aprobado', 'Rechazado') DEFAULT 'Pendiente',
-        FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS evaluaciones (
-        id_evaluacion INT AUTO_INCREMENT PRIMARY KEY,
-        id_estudiante INT NOT NULL,
-        asignatura VARCHAR(100) NOT NULL,
-        nota DECIMAL(5,2),
-        periodo VARCHAR(20),
-        observacion TEXT,
-        FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS reportes (
-        id_reporte INT AUTO_INCREMENT PRIMARY KEY,
-        titulo VARCHAR(200) NOT NULL,
-        descripcion TEXT,
-        tipo VARCHAR(50),
-        fecha_generacion DATE NOT NULL,
-        generado_por INT NOT NULL,
-        FOREIGN KEY (generado_por) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS observaciones (
-        id_observacion INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        tipo VARCHAR(50),
-        descripcion TEXT,
-        fecha DATETIME NOT NULL,
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS auditoria (
-        id_auditoria INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        usuario VARCHAR(50),
-        rol VARCHAR(20),
-        accion VARCHAR(100) NOT NULL,
-        modulo VARCHAR(50),
-        fecha DATETIME NOT NULL,
-        ip VARCHAR(45),
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS detalle_auditoria (
-        id_detalle INT AUTO_INCREMENT PRIMARY KEY,
-        id_auditoria INT NOT NULL,
-        campo VARCHAR(50),
-        valor_anterior TEXT,
-        valor_nuevo TEXT,
-        FOREIGN KEY (id_auditoria) REFERENCES auditoria(id_auditoria) ON DELETE CASCADE
-    );
-    
-    CREATE TABLE IF NOT EXISTS reset_codigos (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        id_usuario INT NOT NULL,
-        codigo VARCHAR(6) NOT NULL,
-        fecha_expiracion DATETIME NOT NULL,
-        usado BOOLEAN DEFAULT FALSE,
-        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    );
-    """
-    
-    try:
-        # Dividir el script en comandos individuales
-        commands = sql_script.split(';')
-        for command in commands:
-            command = command.strip()
-            if command:
-                cursor.execute(command)
-        conexion.commit()
-        print("✅ Tablas creadas exitosamente")
-    except Exception as e:
-        print(f"❌ Error al crear tablas: {e}")
-    finally:
-        cursor.close()
-        conexion.close()
-
-# Ejecutar creación de tablas al iniciar
-with app.app_context():
-    crear_tablas()
-    inicializar_usuarios()
