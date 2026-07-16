@@ -5,44 +5,20 @@ config.py
 Configuración General del Sistema
 =========================================================
 """
-
 import os
 
-
 class Config:
-    """
-    Configuración principal del proyecto SIS-UNETI
-    """
+    SECRET_KEY = os.getenv("SECRET_KEY", "SIS_UNETI_2026_SECRET_KEY")
+    DEBUG = False
 
-    # =====================================================
-    # FLASK
-    # =====================================================
-
-    SECRET_KEY = os.environ.get(
-        "SECRET_KEY",
-        "SIS_UNETI_2026_SECRET_KEY"
-    )
-
-    DEBUG = True
-
-
-    # =====================================================
-    # MYSQL
-    # =====================================================
-
-    MYSQL_HOST = "localhost"
-
-    MYSQL_PORT = 3306
-
-    MYSQL_USER = "root"
-
-    MYSQL_PASSWORD = ""
-
-    MYSQL_DB = "sis_uneti"
-
+    # MySQL Railway
+    MYSQL_HOST = os.getenv("MYSQL_PUBLIC_HOST", "zephyr.proxy.rlwy.net")
+    MYSQL_PORT = int(os.getenv("MYSQL_PUBLIC_PORT", "13458"))
+    MYSQL_USER = os.getenv("MYSQLUSER", "root")
+    MYSQL_PASSWORD = os.getenv("MYSQLPASSWORD", "BjmwBzrHHRhbddiUzaZFwUNFAxQEUdNO")
+    MYSQL_DB = os.getenv("MYSQLDATABASE", "railway")
     MYSQL_CHARSET = "utf8mb4"
-
-
+    
     # =====================================================
     # SESIONES
     # =====================================================
