@@ -85,6 +85,7 @@ def allowed_file(filename):
 # ==========================
 def obtener_conexion():
     try:
+        import pymysql  # Import local para asegurar disponibilidad
         conexion = pymysql.connect(
             host=app.config["MYSQL_HOST"],
             port=app.config["MYSQL_PORT"],
