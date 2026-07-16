@@ -11,7 +11,7 @@ from datetime import timedelta
 import os
 from werkzeug.utils import secure_filename
 import random
-
+ 
 # ==========================================
 # REPORTLAB PARA PDF
 # ==========================================
