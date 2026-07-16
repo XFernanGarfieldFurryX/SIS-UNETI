@@ -342,15 +342,15 @@ def crear_tablas():
     """
     
     try:
-        commands = sql_script.split(';')
-        for command in commands:
-            command = command.strip()
-            if command:
+        # Ejecutar cada comando por separado
+        for command in sql_script.split(';'):
+            if command.strip():
                 cursor.execute(command)
         conexion.commit()
         print("✅ Tablas creadas exitosamente")
     except Exception as e:
         print(f"❌ Error al crear tablas: {e}")
+        conexion.rollback()
     finally:
         cursor.close()
         conexion.close()
@@ -365,7 +365,8 @@ def inicializar_usuarios():
         return
     cursor = conexion.cursor()
     try:
-        # 1. Usuario administrador por defecto
+        # --- Usuarios por defecto ---
+        # Administrador
         cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'administrador'")
         if cursor.fetchone()["total"] == 0:
             password_hash = generate_password_hash("admin123")
@@ -374,9 +375,11 @@ def inicializar_usuarios():
                 ("admin", password_hash, "administrador", "admin@uneti.edu.ve")
             )
             print("✅ Usuario administrador creado: admin / admin123")
+        else:
+            print("ℹ️ Usuario administrador ya existe.")
 
-        # 2. Usuario docente por defecto
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'docente'")
+        # Docente genérico
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'docente' AND usuario = 'docente'")
         if cursor.fetchone()["total"] == 0:
             password_hash = generate_password_hash("docente123")
             cursor.execute(
@@ -384,9 +387,11 @@ def inicializar_usuarios():
                 ("docente", password_hash, "docente", "docente@uneti.edu.ve")
             )
             print("✅ Usuario docente creado: docente / docente123")
+        else:
+            print("ℹ️ Usuario docente genérico ya existe.")
 
-        # 3. Usuario estudiante por defecto
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'estudiante'")
+        # Estudiante genérico
+        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'estudiante' AND usuario = 'estudiante'")
         if cursor.fetchone()["total"] == 0:
             password_hash = generate_password_hash("estudiante123")
             cursor.execute(
@@ -394,8 +399,10 @@ def inicializar_usuarios():
                 ("estudiante", password_hash, "estudiante", "estudiante@uneti.edu.ve")
             )
             print("✅ Usuario estudiante creado: estudiante / estudiante123")
+        else:
+            print("ℹ️ Usuario estudiante genérico ya existe.")
 
-        # 4. Usuario docente específico: Omar Rivero
+        # --- Usuario Omar Rivero (docente) ---
         cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'omar.rivero'")
         if cursor.fetchone()["total"] == 0:
             password_hash = generate_password_hash("docente123")
@@ -404,16 +411,16 @@ def inicializar_usuarios():
                 ("omar.rivero", password_hash, "docente", "omar.rivero@uneti.edu.ve")
             )
             id_usuario = cursor.lastrowid
-            # Insertar en tabla docentes
+            # Insertar en docentes
             cursor.execute(
                 "INSERT INTO docentes (id_usuario, cedula, nombres, apellidos, departamento) VALUES (%s, %s, %s, %s, %s)",
                 (id_usuario, "12345678", "Omar", "Rivero", "Ingeniería")
             )
-            print("✅ Usuario docente creado: Omar Rivero / docente123")
+            print("✅ Usuario docente específico creado: Omar Rivero / docente123")
         else:
             print("ℹ️ Usuario Omar Rivero ya existe.")
 
-        # 5. Usuario estudiante específico: Fernando Do Couto
+        # --- Usuario Fernando Do Couto (estudiante) ---
         cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'fernando.docouto'")
         if cursor.fetchone()["total"] == 0:
             password_hash = generate_password_hash("estudiante123")
@@ -422,18 +429,21 @@ def inicializar_usuarios():
                 ("fernando.docouto", password_hash, "estudiante", "fernando.docouto@uneti.edu.ve")
             )
             id_usuario = cursor.lastrowid
-            # Insertar en tabla estudiantes
+            # Insertar en estudiantes
             cursor.execute(
                 "INSERT INTO estudiantes (id_usuario, cedula, nombres, apellidos, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)",
                 (id_usuario, "87654321", "Fernando", "Do Couto", "Informática", 5)
             )
-            print("✅ Usuario estudiante creado: Fernando Do Couto / estudiante123")
+            print("✅ Usuario estudiante específico creado: Fernando Do Couto / estudiante123")
         else:
             print("ℹ️ Usuario Fernando Do Couto ya existe.")
 
         conexion.commit()
     except Exception as e:
         print(f"❌ Error al crear usuarios por defecto: {e}")
+        # Imprimir el error detallado para depuración
+        import traceback
+        traceback.print_exc()
     finally:
         cursor.close()
         conexion.close()
