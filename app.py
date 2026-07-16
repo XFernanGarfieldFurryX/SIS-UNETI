@@ -113,6 +113,7 @@ def obtener_fecha_venezuela():
 # AUDITORÍA DEL SISTEMA
 # ==========================================
 def registrar_auditoria(accion, modulo):
+    """Registra una acción en la tabla auditoria y devuelve el ID insertado."""
     if "id_usuario" not in session:
         return None
     conexion = obtener_conexion()
@@ -144,7 +145,11 @@ def registrar_auditoria(accion, modulo):
         cursor.close()
         conexion.close() 
         
+# ==========================================
+# REGISTRAR DETALLE DE AUDITORÍA
+# ==========================================
 def registrar_detalle_auditoria(id_auditoria, campo, valor_anterior, valor_nuevo):
+    """Registra un cambio específico en la tabla detalle_auditoria"""
     if not id_auditoria:
         return
     conexion = obtener_conexion()
@@ -162,8 +167,11 @@ def registrar_detalle_auditoria(id_auditoria, campo, valor_anterior, valor_nuevo
         print(f"❌ Error al registrar detalle de auditoría: {e}")
     finally:
         cursor.close()
-        conexion.close()
+        conexion.close()  
 
+# ==========================================
+# FUNCIÓN PARA ENVIAR CORREOS (UNIFICADA)
+# ==========================================
 def enviar_correo(destinatario, asunto, mensaje_html):
     try:
         msg = Message(
@@ -210,14 +218,17 @@ def rol_requerido(*roles):
     return decorador
 
 # ============================================
-# FUNCIONES DE INICIALIZACIÓN
+# FUNCIÓN PARA CREAR TABLAS
 # ============================================
 def crear_tablas():
+    """Crea todas las tablas si no existen"""
     conexion = obtener_conexion()
     if conexion is None:
         print("❌ No se pudo conectar para crear tablas")
         return
+    
     cursor = conexion.cursor()
+    
     sql_script = """
     CREATE TABLE IF NOT EXISTS usuarios (
         id_usuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -329,6 +340,7 @@ def crear_tablas():
         FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
     );
     """
+    
     try:
         commands = sql_script.split(';')
         for command in commands:
@@ -343,6 +355,9 @@ def crear_tablas():
         cursor.close()
         conexion.close()
 
+# ==========================
+# FUNCIÓN PARA INICIALIZAR USUARIOS
+# ==========================
 def inicializar_usuarios():
     conexion = obtener_conexion()
     if conexion is None:
@@ -447,7 +462,7 @@ def login():
     return render_template("login.html")
 
 # ============================================
-# RECUPERACIÓN DE CONTRASEÑA (resumido)
+# RECUPERACIÓN DE CONTRASEÑA
 # ============================================
 def generar_codigo_recuperacion(id_usuario):
     codigo = str(random.randint(100000, 999999))
@@ -638,8 +653,77 @@ def restablecer():
     return render_template("restablecer.html")
 
 # ============================================
-# CERRAR SESIÓN
+# DIAGNÓSTICO DE CORREO
 # ============================================
+@app.route("/diagnostico_correo")
+def diagnostico_correo():
+    try:
+        import smtplib
+        import socket
+        
+        try:
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=10)
+            server.ehlo()
+            resultado = "✅ Conexión SSL (puerto 465) exitosa"
+            server.close()
+        except Exception as e1:
+            try:
+                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=10)
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
+                resultado = "✅ Conexión TLS (puerto 587) exitosa"
+                server.close()
+            except Exception as e2:
+                resultado = f"❌ Ambas conexiones fallaron. SSL: {e1}, TLS: {e2}"
+        
+        return f"""
+        <h2>🔍 Diagnóstico de correo</h2>
+        <p><strong>Configuración actual:</strong></p>
+        <ul>
+            <li><strong>MAIL_SERVER:</strong> {app.config['MAIL_SERVER']}</li>
+            <li><strong>MAIL_PORT:</strong> {app.config['MAIL_PORT']}</li>
+            <li><strong>MAIL_USERNAME:</strong> {app.config['MAIL_USERNAME']}</li>
+            <li><strong>MAIL_PASSWORD:</strong> {'*' * len(app.config['MAIL_PASSWORD'])}</li>
+        </ul>
+        <p><strong>Diagnóstico:</strong> {resultado}</p>
+        <br>
+        <p>Si ves errores de autenticación, genera una nueva contraseña de aplicación en Gmail.</p>
+        <a href="/recuperar">Volver a recuperar</a>
+        """
+    except Exception as e:
+        return f"❌ Error en diagnóstico: {e}"
+
+@app.route("/enviar_prueba")
+@login_requerido
+def enviar_prueba():
+    resultado = enviar_correo(
+        "docoutofernandodaniel@gmail.com",
+        "📧 Prueba de correo SIS-UNETI",
+        f"""
+        <h1 style="color:#003366;">¡Correo enviado desde SIS-UNETI!</h1>
+        <p>Si ves esto, la configuración de correo funciona correctamente. 🚀</p>
+        <hr>
+        <p><strong>Fecha:</strong> {datetime.now().strftime("%d/%m/%Y %H:%M")}</p>
+        <p><strong>Usuario:</strong> {session.get("usuario", "Desconocido")}</p>
+        """
+    )
+    if resultado:
+        return """
+        <h2 style="color:green;">✅ Correo enviado correctamente</h2>
+        <p>Revisa tu bandeja de entrada o la carpeta de spam.</p>
+        <a href="/administrador">Volver al panel</a>
+        """
+    else:
+        return """
+        <h2 style="color:red;">❌ Error al enviar el correo</h2>
+        <p>Revisa la consola de Flask para ver el error detallado.</p>
+        <a href="/administrador">Volver al panel</a>
+        """
+
+# ==========================
+# CERRAR SESIÓN
+# ==========================
 @app.route("/logout")
 @login_requerido
 def logout():
@@ -929,12 +1013,6 @@ def eliminar_solicitud(id):
     conexion.close()
     return redirect("/solicitudes")
 
-@app.route("/verificar_rol")
-def verificar_rol():
-    if "usuario" not in session:
-        return "No has iniciado sesión."
-    return f"Usuario: {session['usuario']}<br>Rol: <strong>{session['rol']}</strong>"
-
 # ============================================
 # GESTIÓN DE BENEFICIOS
 # ============================================
@@ -1038,7 +1116,7 @@ def editar_beneficio(id):
     cursor.close()
     conexion.close()
     return render_template("editar_beneficio.html", beneficio=beneficio_anterior)
-
+    
 @app.route("/eliminar_beneficio/<int:id>")
 @login_requerido
 @rol_requerido("administrador", "docente")
@@ -1356,7 +1434,7 @@ def eliminar_observacion(id):
     return redirect("/observaciones")
 
 # ============================================
-# AUDITORÍA DEL SISTEMA (CON PAGINACIÓN)
+# AUDITORÍA DEL SISTEMA
 # ============================================
 @app.route("/auditoria")
 @login_requerido
@@ -1472,6 +1550,9 @@ def auditoria():
         total_paginas=total_paginas
     )
 
+# ============================================
+# EXPORTAR AUDITORÍA A PDF
+# ============================================
 @app.route("/auditoria/pdf")
 @login_requerido
 @rol_requerido("administrador")
@@ -1541,6 +1622,9 @@ def exportar_pdf():
     except Exception as e:
         return f"Error al generar el PDF: {str(e)}"
 
+# ============================================
+# EXPORTAR AUDITORÍA A EXCEL
+# ============================================
 @app.route("/auditoria/excel")
 @login_requerido
 @rol_requerido("administrador")
@@ -1618,6 +1702,9 @@ def exportar_excel():
     except Exception as e:
         return f"Error al generar el Excel: {str(e)}"
 
+# ============================================
+# GESTIÓN DE HISTORIALES (LIMPIEZA)
+# ============================================
 @app.route("/limpiar_historiales", methods=["GET"])
 @login_requerido
 @rol_requerido("administrador")
@@ -1626,6 +1713,7 @@ def limpiar_historiales():
     if conexion is None:
         flash("Error de conexión con la base de datos.", "error")
         return redirect(url_for("administrador"))
+    
     cursor = conexion.cursor()
     cursor.execute("SELECT COUNT(*) AS total FROM auditoria")
     total_auditoria = cursor.fetchone()["total"]
@@ -1633,6 +1721,7 @@ def limpiar_historiales():
     total_detalle = cursor.fetchone()["total"]
     cursor.close()
     conexion.close()
+    
     return render_template(
         "limpiar_historiales.html",
         total_auditoria=total_auditoria,
@@ -1644,11 +1733,14 @@ def limpiar_historiales():
 @rol_requerido("administrador")
 def ejecutar_limpieza():
     opcion = request.form.get("opcion", "completa")
+    
     conexion = obtener_conexion()
     if conexion is None:
         flash("Error de conexión con la base de datos.", "error")
         return redirect(url_for("limpiar_historiales"))
+    
     cursor = conexion.cursor()
+    
     try:
         if opcion == "completa":
             cursor.execute("DELETE FROM detalle_auditoria")
@@ -1667,12 +1759,15 @@ def ejecutar_limpieza():
         else:
             flash("⚠️ Opción no válida.", "error")
             return redirect(url_for("limpiar_historiales"))
+        
         conexion.commit()
         registrar_auditoria(f"Limpieza de historial - Opción: {opcion}", "Mantenimiento")
         cursor.close()
         conexion.close()
+        
         flash(mensaje, "success")
         return redirect(url_for("limpiar_historiales"))
+    
     except Exception as e:
         try:
             conexion.rollback()
@@ -1695,7 +1790,7 @@ def error_servidor(error):
     return render_template("error500.html"), 500
 
 # ==========================
-# INICIALIZACIÓN DEL SISTEMA
+# INICIALIZACIÓN AL INICIAR
 # ==========================
 with app.app_context():
     crear_tablas()
@@ -1710,4 +1805,10 @@ if __name__ == "__main__":
         🚀 SIS-UNETI INICIANDO...
     =====================================
     """)
+    conexion = obtener_conexion()
+    if conexion:
+        print("✅ Conexión MySQL establecida correctamente.")
+        conexion.close()
+    else:
+        print("⚠️ Servidor iniciado sin conexión a Base de Datos.")
     app.run(host="0.0.0.0", port=5000, debug=True)
