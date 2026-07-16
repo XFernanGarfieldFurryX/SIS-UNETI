@@ -1,14 +1,12 @@
 from flask import Flask, render_template, request, redirect, session, send_file, url_for, flash
 import io
 from datetime import datetime
-import pymysql
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from config import Config
 from zoneinfo import ZoneInfo
 import secrets
 from datetime import timedelta
-import os
 from werkzeug.utils import secure_filename
 import random
 
