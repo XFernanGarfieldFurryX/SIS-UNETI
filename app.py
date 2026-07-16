@@ -84,7 +84,6 @@ def allowed_file(filename):
 # ==========================
 def obtener_conexion():
     try:
-        print(f"DEBUG: Conectando a {app.config['MYSQL_HOST']}:{app.config['MYSQL_PORT']} con {app.config['MYSQL_USER']}")
         conexion = pymysql.connect(
             host=app.config["MYSQL_HOST"],
             port=app.config["MYSQL_PORT"],
