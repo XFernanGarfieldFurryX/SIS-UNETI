@@ -340,7 +340,7 @@ def inicializar_usuarios():
         return
     cursor = conexion.cursor()
     try:
-        # 1. Administrador
+        # 1. Administrador genérico
         cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'admin'")
         if not cursor.fetchone():
             password_hash = generate_password_hash("admin123")
@@ -350,7 +350,7 @@ def inicializar_usuarios():
             )
             print("✅ Usuario administrador creado: admin / admin123")
 
-        # 2. Docente
+        # 2. Docente genérico
         cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'docente'")
         docente_user = cursor.fetchone()
         if not docente_user:
@@ -363,7 +363,6 @@ def inicializar_usuarios():
         else:
             id_docente_usuario = docente_user["id_usuario"]
 
-        # Verificar tabla docentes para evitar duplicado de cédula
         cursor.execute("SELECT id_docente FROM docentes WHERE cedula = '12345678'")
         if not cursor.fetchone():
             cursor.execute(
@@ -372,7 +371,28 @@ def inicializar_usuarios():
             )
             print("✅ Perfil de docente genérico creado.")
 
-        # 3. Estudiante
+        # 3. Docente específico: omar.rivero
+        cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'omar.rivero'")
+        omar_user = cursor.fetchone()
+        if not omar_user:
+            password_hash = generate_password_hash("docente123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("omar.rivero", password_hash, "docente", "omar.rivero@uneti.edu.ve")
+            )
+            id_omar_usuario = cursor.lastrowid
+        else:
+            id_omar_usuario = omar_user["id_usuario"]
+
+        cursor.execute("SELECT id_docente FROM docentes WHERE cedula = '99887766'")
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO docentes (id_usuario, cedula, nombres, apellidos, departamento) VALUES (%s, %s, %s, %s, %s)",
+                (id_omar_usuario, "99887766", "Omar", "Rivero", "Informática")
+            )
+            print("✅ Docente omar.rivero creado: omar.rivero / docente123")
+
+        # 4. Estudiante genérico
         cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'estudiante'")
         estudiante_user = cursor.fetchone()
         if not estudiante_user:
@@ -385,7 +405,6 @@ def inicializar_usuarios():
         else:
             id_estudiante_usuario = estudiante_user["id_usuario"]
 
-        # Verificar tabla estudiantes para evitar duplicado de cédula
         cursor.execute("SELECT id_estudiante FROM estudiantes WHERE cedula = '87654321'")
         if not cursor.fetchone():
             cursor.execute(
@@ -393,6 +412,27 @@ def inicializar_usuarios():
                 (id_estudiante_usuario, "87654321", "Estudiante", "Prueba", "Informática", 1)
             )
             print("✅ Perfil de estudiante genérico creado.")
+
+        # 5. Estudiante específico: fernando.docouto
+        cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'fernando.docouto'")
+        fernando_user = cursor.fetchone()
+        if not fernando_user:
+            password_hash = generate_password_hash("estudiante123")
+            cursor.execute(
+                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
+                ("fernando.docouto", password_hash, "estudiante", "docoutofernandodaniel@gmail.com")
+            )
+            id_fernando_usuario = cursor.lastrowid
+        else:
+            id_fernando_usuario = fernando_user["id_usuario"]
+
+        cursor.execute("SELECT id_estudiante FROM estudiantes WHERE cedula = '33445566'")
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO estudiantes (id_usuario, cedula, nombres, apellidos, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)",
+                (id_fernando_usuario, "33445566", "Fernando Daniel", "Do Couto Echenique", "Informática", 2)
+            )
+            print("✅ Estudiante fernando.docouto creado: fernando.docouto / estudiante123")
 
         conexion.commit()
     except Exception as e:
