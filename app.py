@@ -340,65 +340,63 @@ def inicializar_usuarios():
         return
     cursor = conexion.cursor()
     try:
-        # Usuario administrador
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE rol = 'administrador'")
-        if cursor.fetchone()["total"] == 0:
+        # 1. Administrador
+        cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'admin'")
+        if not cursor.fetchone():
             password_hash = generate_password_hash("admin123")
             cursor.execute(
                 "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
                 ("admin", password_hash, "administrador", "admin@uneti.edu.ve")
             )
             print("✅ Usuario administrador creado: admin / admin123")
-        # Usuario docente genérico
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'docente'")
-        if cursor.fetchone()["total"] == 0:
+
+        # 2. Docente
+        cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'docente'")
+        docente_user = cursor.fetchone()
+        if not docente_user:
             password_hash = generate_password_hash("docente123")
             cursor.execute(
                 "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
                 ("docente", password_hash, "docente", "docente@uneti.edu.ve")
             )
-            print("✅ Usuario docente genérico creado: docente / docente123")
-        # Usuario estudiante genérico
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'estudiante'")
-        if cursor.fetchone()["total"] == 0:
+            id_docente_usuario = cursor.lastrowid
+        else:
+            id_docente_usuario = docente_user["id_usuario"]
+
+        # Verificar tabla docentes para evitar duplicado de cédula
+        cursor.execute("SELECT id_docente FROM docentes WHERE cedula = '12345678'")
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO docentes (id_usuario, cedula, nombres, apellidos, departamento) VALUES (%s, %s, %s, %s, %s)",
+                (id_docente_usuario, "12345678", "Omar", "Rivero", "Ingeniería")
+            )
+            print("✅ Perfil de docente genérico creado.")
+
+        # 3. Estudiante
+        cursor.execute("SELECT id_usuario FROM usuarios WHERE usuario = 'estudiante'")
+        estudiante_user = cursor.fetchone()
+        if not estudiante_user:
             password_hash = generate_password_hash("estudiante123")
             cursor.execute(
                 "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
                 ("estudiante", password_hash, "estudiante", "estudiante@uneti.edu.ve")
             )
-            print("✅ Usuario estudiante genérico creado: estudiante / estudiante123")
-        # Usuario docente específico: Omar Rivero
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'omar.rivero'")
-        if cursor.fetchone()["total"] == 0:
-            password_hash = generate_password_hash("docente123")
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
-                ("omar.rivero", password_hash, "docente", "omar.rivero@uneti.edu.ve")
-            )
-            id_usuario = cursor.lastrowid
-            cursor.execute(
-                "INSERT INTO docentes (id_usuario, cedula, nombres, apellidos, departamento) VALUES (%s, %s, %s, %s, %s)",
-                (id_usuario, "12345678", "Omar", "Rivero", "Ingeniería")
-            )
-            print("✅ Usuario docente creado: Omar Rivero / docente123")
-        # Usuario estudiante específico: Fernando Do Couto
-        cursor.execute("SELECT COUNT(*) AS total FROM usuarios WHERE usuario = 'fernando.docouto'")
-        if cursor.fetchone()["total"] == 0:
-            password_hash = generate_password_hash("estudiante123")
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, password, rol, email) VALUES (%s, %s, %s, %s)",
-                ("fernando.docouto", password_hash, "estudiante", "fernando.docouto@uneti.edu.ve")
-            )
-            id_usuario = cursor.lastrowid
+            id_estudiante_usuario = cursor.lastrowid
+        else:
+            id_estudiante_usuario = estudiante_user["id_usuario"]
+
+        # Verificar tabla estudiantes para evitar duplicado de cédula
+        cursor.execute("SELECT id_estudiante FROM estudiantes WHERE cedula = '87654321'")
+        if not cursor.fetchone():
             cursor.execute(
                 "INSERT INTO estudiantes (id_usuario, cedula, nombres, apellidos, carrera, semestre) VALUES (%s, %s, %s, %s, %s, %s)",
-                (id_usuario, "87654321", "Fernando", "Do Couto", "Informática", 5)
+                (id_estudiante_usuario, "87654321", "Estudiante", "Prueba", "Informática", 1)
             )
-            print("✅ Usuario estudiante creado: Fernando Do Couto / estudiante123")
+            print("✅ Perfil de estudiante genérico creado.")
+
         conexion.commit()
     except Exception as e:
         print(f"❌ Error al crear usuarios: {e}")
-        traceback.print_exc()
     finally:
         cursor.close()
         conexion.close()
